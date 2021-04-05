@@ -44,7 +44,8 @@ class OpenMusicTool : public Space {
     IntVarArray pitch;  //the pitch 
     vector<int> duration;    //the duration of a note expressed in sixteenth notes
     vector<int> start;  //the start of the note with respect to the start of the piece expressed in sixteenth notes
-    
+    IntVarArray intervals;  //the intervals between each adjacent notes
+
     //Chords
     const vector<vector<int>> chords;   //the list of input chords
     const vector<int> chordDuration;    //the duration of the chords
@@ -68,7 +69,10 @@ class OpenMusicTool : public Space {
 
     //admissible intervals with the highest note of the chord
     const vector<int> admissibleIntervalsWithHighNoteFromChord{3, 4, 5, 7, 8, 9, 12,
-                                                              -3, -4, -5, -8, -9, -12}; //only positive because the note can't be below the highest note in the chord
+                                                              -3, -4, -5, -8, -9, -12};
+    
+    const IntSet admissibleIntervalsBetweenAdjacentNotes{-1, -2, -3, -4, -5, -7, -8, -9, -12, 
+                                                          1, 2, 3, 4, 5, 7, 8, 9, 12};
 
     int minimum;
 
@@ -79,7 +83,7 @@ class OpenMusicTool : public Space {
       - if it is a seventh, the following note is the key above (+1 for major or +2 for minor)
       - if it is a fourth, then it can be above (+7) or below (-5)
     */
-    void dissonnanceResolution(int key, bool major){//works but only for sevenths note, note for fourths
+    void dissonnanceResolution(int key, bool major){//works but only for sevenths note, note for fourths -> to improve
       IntVarArgs temp(pitch.slice(pitch.size() -1, -1)); //reverse the array to enforce subsedience constraint with precedence constraint
       for(int i = 0; i < sevenths.size(); i++){
         precede(*this, temp, sevenths[i] + 1, sevenths[i]); //if there is a seventh, there will eventually be a tonic after it
@@ -88,13 +92,28 @@ class OpenMusicTool : public Space {
     /*
       the maximum interval between two adjacent notes is an octave and is one of the possible values
     */
-    void interval(){//doesn't work rn
-      
+    void interval(){//constrains intervals to acceptable values, but doesn't prioritize smaller intervals
+      for(int i = 0; i < n-1; i++){
+        //pitch[i] - pitch[i+1] - z[i] = 0
+        IntVarArray temp(*this, 3, -12, 108);
+        //initializiation
+        dom(*this, temp[0], pitch[i]);
+        dom(*this, temp[1], pitch[i+1]);
+        dom(*this, temp[2], intervals[i]);
+
+        //linking the temporary constraints to the ones they represent
+        rel(*this, temp[0], IRT_EQ, pitch[i]);
+        rel(*this, temp[1], IRT_EQ, pitch[i+1]);
+        rel(*this, temp[2], IRT_EQ, intervals[i]);
+
+        //adding the constraint on the interval between the two notes
+        linear(*this, {1, -1, -1}, temp, IRT_EQ, 0);
+      } 
     }
     /*
       sur les accords majeurs/mineurs : doubler la fondamentale en priorité, puis la quinte, puis la tierce
     */
-    void noteOnChord(){
+    void noteOnChord(){//tested, works but need to improve the note selection
       for(int i = 0; i < chords.size(); i++){//for each chord 
         for(int j = 0; j < start.size(); j++){//for each note
           if(chordStart[i] == start[j]){//the note is played at the same time as the chord
@@ -106,69 +125,44 @@ class OpenMusicTool : public Space {
       }
     }
     /*
-      get the seventh notes
+      get the ith notes from the scale
+      key is the key, major is true if the scale is major, pos is the position with respect to the key (6 if it is the key), vec is the vector to be filled
     */
-    void getSevenths(int key, bool major){//tested
-      vector<int> seven(0);
+    void getIths(int key, bool major, int pos, vector<int>* vec){
+      vector<int> ith(0);
       int note = key;
-      
-      int interval;
+
+      int interval = 0;
       if(major){
-        interval = 11;
+        for(int i = 0; i <= pos; ++i){
+          interval = interval + majorScale[i];
+        }
       }
       else{
-        interval = 10;
+        for(int i = 0; i <= pos; ++i){
+            interval = interval + minorScale[i];
+        }
       }
-      note = note + interval;
-      while(note < 108){
-        seven.push_back(note);
+      note = key + interval;
+      while(note < 109){
+        ith.push_back(note);
         //std::cout << note << "\n";
         note = note + 12;
       }
       note = key - (12 - interval);
-      while(note > 21){
-        seven.push_back(note);
+      while (note > 20){
+        ith.push_back(note);
         //std::cout << note << "\n";
         note = note - 12;
       }
-      sevenths = seven;
-    }   
-    /*
-      tells if a value is a seventh
-    */
-    bool inSevenths(int value){//tested
-      for(int i = 0; i < sevenths.size(); i++){
-        if(sevenths[i] == value){
-          return true;
-        }
-      }
-      return false;
+      *vec = ith;
     }
     /*
-      get the fourth notes
+    * returns true if the value is a ith
     */
-    void getFourths(int key){//tested
-      vector<int> four(0);
-      int note = key+5;
-      while(note < 108){
-        four.push_back(note);
-        //std::cout << note << "\n";
-        note = note + 12;
-      }
-      note = key -7;
-      while(note > 21){
-        four.push_back(note);
-        //std::cout << note << "\n";
-        note = note - 12;
-      }
-
-   }
-    /*
-      tells if a value is a fourth
-    */
-    bool inFourths(int value){//tested
+    bool inIths(int value, vector<int> vec){//tested
       for(int i = 0; i < fourths.size(); i++){
-        if(fourths[i] == value){
+        if(vec[i] == value){
           return true;
         }
       }
@@ -177,7 +171,7 @@ class OpenMusicTool : public Space {
     /*
       the notes are in the tonality specified
     */
-    void inTonality(int key, bool major){  //tested
+    void inTonality(int key, bool major){  //tested, works correctly but we can add the diminished seventh
       vector<int> notes(0);
       int note = key;
       notes.push_back(note);
@@ -223,13 +217,10 @@ class OpenMusicTool : public Space {
     /*
       the notes in the melody are not notes in the chord that is played at the same time and are above notes in the chord
     */
-    void restrainDomain(){//tested
-      //std::cout << "aboveChord, chords.size() = " << chords.size() << "\n";
+    void restrainDomain(){//tested, works correctly but can be loosened if necessary
       int j = 0;
       for(int i = 0; i < chords.size(); i++){//parcourir tous les accords
-        //std::cout << "chord no : " << i << "\n";
         while(start[j] < chordStart[i] + chordDuration[i] - 1 && j < n){//pour chaque note jouée en même temps que l'accord
-          //std::cout << "note n : " << j << "\n";
           dom(*this, pitch[j], chords[i][2] + 1, chords[i][2] + 12);  //la note jouée en même temps doit être au dessus de l'accord à maximum une octave
           ++j;
         }
@@ -239,17 +230,25 @@ class OpenMusicTool : public Space {
     /*
       Constructor : 
       chords are given with the notes in ascending order
-      the key is given in MIDI notation from C5 to B5(example : C = 60)
+      the key is given in MIDI notation from C5 to B5(example : middle C = 60)
       if the tonality is major then major is true, else false
     */
     OpenMusicTool(vector<vector<int>> chordSequence, vector<int> chordDurationSequence, vector<int> chordStartSequence, 
-                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,6, 21, 108), 
-                  start(notesStarts), chords(chordSequence), chordStart(chordStartSequence), chordDuration(chordDurationSequence), 
+                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,3, 21, 108), 
+                  intervals(*this, 2, -12, 12), start(notesStarts), 
+                  chords(chordSequence), chordStart(chordStartSequence), chordDuration(chordDurationSequence), 
                   n(notesStarts.size()) {  //pour l'instant, 2 mesures, 4 accords, 8 noires
-      
-      //get sevenths and fourths
-      getSevenths(key, major);
-      getFourths(key);
+
+      dom(*this, intervals, admissibleIntervalsBetweenAdjacentNotes);
+
+      //get all notes per type
+      getIths(key, major, 0, &seconds);
+      getIths(key, major, 1, &thirds);
+      getIths(key, major, 2, &fourths);
+      getIths(key, major, 3, &fifths);
+      getIths(key, major, 4, &sixths);
+      getIths(key, major, 5, &sevenths);
+      getIths(key, major, 6, &firsts);
 
       //notes played with a chord are not notes in that chord and are above it
       restrainDomain();
@@ -261,7 +260,7 @@ class OpenMusicTool : public Space {
       noteOnChord();
 
       //the interval between two adjacent note is valid
-      //interval();
+      interval();
 
       //notes played during a certain chord is played have to respect the admissible intervals with the highest note of the chord
 
@@ -293,8 +292,9 @@ class OpenMusicTool : public Space {
 
 // main function
 int main(int argc, char* argv[]) {
+  //general test to see if constraints work together
   //chords passed as an argument, for now 
-  vector<int> chord1{55,60,64}; //CM
+  /*vector<int> chord1{55,60,64}; //CM
   vector<int> chord2{57,60,65}; //FM
   vector<int> chord3{59,62,67}; //GM
   vector<int> chord4{55,60,64}; //CM
@@ -305,7 +305,16 @@ int main(int argc, char* argv[]) {
 
   vector<int> inputDurations{8, 6, 2, //mesure 1
                           6, 2, 8};   //mesure 2
-  vector<int> inputStarts{0, 8, 14, 16, 22, 24};
+  vector<int> inputStarts{0, 8, 14, 16, 22, 24};*/
+
+  //simple test to test if a single constraint works
+  vector<int> chord1{55, 60, 64};
+  vector<vector<int>> chordSeq{chord1};
+  vector<int> chordDur{16};
+  vector<int> chordStar{0};
+
+  vector<int> inputDurations{8, 6, 2};
+  vector<int> inputStarts{0, 8, 14};
 
 
 
