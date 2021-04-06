@@ -5,6 +5,12 @@
 using namespace Gecode;
 using namespace std;
 
+//TODO : change bool major for an int to make it include diminished and augmented
+int MAJOR(0);
+int MINOR(1);
+int DIMINISHED(2);
+int AUGMENTED(3);
+
 /*representation used : 
     - MIDI notes range from 21 (A0) to 108 (C8) with 20 a rest
 
@@ -29,7 +35,7 @@ using namespace std;
 // currently we only take care of major/minor chords, not augmented nor diminished chords
  
 //constraints for notes : precedence (one before the other), 
-  //intervalle entre note haute de l'accord et mélodie < une octave (12), pas septième(10-11) ni quarte augmentée(6)
+  //intervalle entre note haute de l'accord et mélodie < une octave (12), pas septième(10-11) ni quarte augmentée(6) ni seconde(1-2)
   //sur les accords majeurs/mineurs : doubler la fondamentale en priorité, puis la quinte, puis la tierce
   //sur les accords diminués, doubler la tierce
   //sur les accords augmentés, doubler la fondamentale ou la tierce
@@ -37,6 +43,7 @@ using namespace std;
   //intervalles de seconde à éviter
   //mouvements contraires et obliques à privilégier
   //saut à l'octave précédé et suivi d'un mouvement contraire
+  //contrainte sur le nombre max de notes identiques dans une sous-séquence donnée (ex pas plus que 3 notes identiques dans une séquence de 6)
 
 class OpenMusicTool : public Space {
   protected:
@@ -58,6 +65,10 @@ class OpenMusicTool : public Space {
     const int majorScale[7] = {2, 2, 1, 2, 2, 2, 1};
     const int minorScale[7] = {2, 1, 2, 2, 1, 2, 2};
 
+    const vector<vector<int>> majorChords{{4, 3}, {3, 5}, {5, 4}};
+    const vector<vector<int>> minorChords{{3, 4}, {4, 5}, {5, 3}};
+    const vector<vector<int>> diminishedChords{{3, 3}, {3, 6}, {6, 3}};
+
     //sensitive notes
     vector<int> firsts;
     vector<int> seconds;
@@ -68,8 +79,7 @@ class OpenMusicTool : public Space {
     vector<int> sevenths;
 
     //admissible intervals with the highest note of the chord
-    const vector<int> admissibleIntervalsWithHighNoteFromChord{3, 4, 5, 7, 8, 9, 12,
-                                                              -3, -4, -5, -8, -9, -12};
+    const vector<int> admissibleIntervalsWithHighNoteFromChord{3, 4, 5, 7, 8, 9, 12};
     
     const IntSet admissibleIntervalsBetweenAdjacentNotes{-1, -2, -3, -4, -5, -7, -8, -9, -12, 
                                                           1, 2, 3, 4, 5, 7, 8, 9, 12};
@@ -113,22 +123,114 @@ class OpenMusicTool : public Space {
     /*
       sur les accords majeurs/mineurs : doubler la fondamentale en priorité, puis la quinte, puis la tierce
     */
-    void noteOnChord(){//tested, works but need to improve the note selection
-      for(int i = 0; i < chords.size(); i++){//for each chord 
+    void noteOnChord(){//tested, works
+      for(int i = 0; i < chords.size(); i++){//for each chord
+        //get the notes that can be played on top of the chord
+        vector<int> notes(getAdmissibleNotes(chords[i]));
         for(int j = 0; j < start.size(); j++){//for each note
           if(chordStart[i] == start[j]){//the note is played at the same time as the chord
-            const vector<int> vect({chords[i][0]+12, chords[i][1] + 12, chords[i][2] + 12}); //that note is either the tonic, third or fifth of the chord
-            IntSet set(vect);
+            const vector<int> v(notes);
+            IntSet set(v);
             dom(*this, pitch[j], set);
           }
         }
       }
     }
     /*
+    * returns the notes that can be played on top of a certain chords in order of preference
+    */
+    vector<int> getAdmissibleNotes(vector<int> chord){//tested, works for major and minor, not done yet for dimineshed/augmented
+    //get the intervals between the notes
+      vector<int> intervals{chord[1] - chord[0], chord[2] - chord[1]};
+      if(isInMode(intervals, majorChords)){// if the chord is major
+        int inversion = getInversion(intervals, majorChords);
+        int fundamental = getFundamental(chord, inversion);
+        vector<int> fundamentals(0);
+        vector<int> fifth(0);
+        vector<int> third(0);
+        //get the admissible notes
+        getIths(fundamental, true, 6, &fundamentals);
+        getIths(fundamental, true, 1, &third);
+        getIths(fundamental, true, 3, &fifth);
+        //put everything together in a vector in the right order
+        fifth.insert(std::end(fifth), std::begin(third), std::end(third));
+        fundamentals.insert(std::end(fundamentals), std::begin(fifth), std::end(fifth));
+        return fundamentals;
+      }
+      else if(isInMode(intervals, minorChords)){//if the chord is minor
+        int inversion = getInversion(intervals, minorChords);
+        int fundamental = getFundamental(chord, inversion);
+        vector<int> fundamentals(0);
+        vector<int> fifth(0);
+        vector<int> third(0);
+        //get the admissible notes
+        getIths(fundamental, false, 6, &fundamentals);
+        getIths(fundamental, false, 1, &third);
+        getIths(fundamental, false, 3, &fifth);
+        //put everything together in a vector in the right order
+        fifth.insert(std::end(fifth), std::begin(third), std::end(third));
+        fundamentals.insert(std::end(fundamentals), std::begin(fifth), std::end(fifth));
+        return fundamentals;
+      }
+      else{// to improve to take into account augmented chords, currently they are treated as diminished chords
+        int inversion = getInversion(intervals, diminishedChords);
+        int fundamental = getFundamental(chord, inversion);
+        vector<int> third(0);
+        //get the admissible notes
+        getIths(fundamental, false, 1, &third);//TODO : adapter, la c'est pour les mineures
+        return third;
+      }  
+    }
+    /*
+    * test function
+    */
+    void testAdmissibleNotes(vector<int> chord){
+      vector<int> vec(getAdmissibleNotes(chord));
+      for(int i = 0; i < vec.size(); ++i){
+        std::cout << vec[i] << "\n";
+      }
+    }
+    /*
+    * returns the fundamental note of the chord
+    */
+    int getFundamental(vector<int> chord, int inversion){//works
+      if(inversion == 0){
+        return chord[0];
+      }
+      else if(inversion == 1){
+        return chord[2];
+      }
+      else{
+        return chord[1];
+      }
+    }
+    /*
+    * returns true if the chord is in the mode
+    */
+    bool isInMode(vector<int> chordIntervals, vector<vector<int>> mode){//tested, works fine
+      for(int i = 0; i < mode.size(); ++i){
+        if(std::equal(mode[i].begin(), mode[i].end(), chordIntervals.begin())){
+          return true;
+        }
+      }
+      return false;
+    }
+    /*
+    * returns the inversion of the chord(0 if it is in fundamental order, one if it is the first inversion or 2 if it is the second inversion)
+    */
+    int getInversion(vector<int> chordIntervals, vector<vector<int>> mode){//tested, works fine
+      for(int i = 0; i < mode.size(); i++){
+        if(equal(mode[i].begin(), mode[i].end(), chordIntervals.begin())){
+          return i;
+        }
+      }
+      return -1;
+    }
+    /*
       get the ith notes from the scale
       key is the key, major is true if the scale is major, pos is the position with respect to the key (6 if it is the key), vec is the vector to be filled
     */
-    void getIths(int key, bool major, int pos, vector<int>* vec){
+    void getIths(int key, bool major, int pos, vector<int>* vec){//tested, works
       vector<int> ith(0);
       int note = key;
 
@@ -234,8 +336,8 @@ class OpenMusicTool : public Space {
       if the tonality is major then major is true, else false
     */
     OpenMusicTool(vector<vector<int>> chordSequence, vector<int> chordDurationSequence, vector<int> chordStartSequence, 
-                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,3, 21, 108), 
-                  intervals(*this, 2, -12, 12), start(notesStarts), 
+                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,6, 21, 108), 
+                  intervals(*this, 5, -12, 12), start(notesStarts), 
                   chords(chordSequence), chordStart(chordStartSequence), chordDuration(chordDurationSequence), 
                   n(notesStarts.size()) {  //pour l'instant, 2 mesures, 4 accords, 8 noires
 
@@ -271,7 +373,6 @@ class OpenMusicTool : public Space {
       //dom(*this, pitch[2], 71);
       dissonnanceResolution(key, major);
 
-
       // post branching
       branch(*this, pitch, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     }
@@ -288,13 +389,21 @@ class OpenMusicTool : public Space {
     void print(void) const {
       std::cout << pitch << std::endl;
     }
+    //print with OM compliant format
+    void printOM(void) const {
+      std::cout << "(";
+      for(int i = 0; i < pitch.size(); i++){
+        std::cout << pitch[i] << "00 ";
+      }
+      std::cout << ")\n";
+    }
 };
 
 // main function
 int main(int argc, char* argv[]) {
   //general test to see if constraints work together
   //chords passed as an argument, for now 
-  /*vector<int> chord1{55,60,64}; //CM
+  vector<int> chord1{55,60,64}; //CM
   vector<int> chord2{57,60,65}; //FM
   vector<int> chord3{59,62,67}; //GM
   vector<int> chord4{55,60,64}; //CM
@@ -305,16 +414,16 @@ int main(int argc, char* argv[]) {
 
   vector<int> inputDurations{8, 6, 2, //mesure 1
                           6, 2, 8};   //mesure 2
-  vector<int> inputStarts{0, 8, 14, 16, 22, 24};*/
+  vector<int> inputStarts{0, 8, 14, 16, 22, 24};
 
   //simple test to test if a single constraint works
-  vector<int> chord1{55, 60, 64};
+  /*vector<int> chord1{55, 60, 64};
   vector<vector<int>> chordSeq{chord1};
   vector<int> chordDur{16};
   vector<int> chordStar{0};
 
   vector<int> inputDurations{8, 6, 2};
-  vector<int> inputStarts{0, 8, 14};
+  vector<int> inputStarts{0, 8, 14};*/
 
 
 
@@ -325,6 +434,7 @@ int main(int argc, char* argv[]) {
   int nbSol = 0;
   // search and print all solutions
   while (OpenMusicTool* s = e.next()) {
+    //s->printOM(); delete s;
     s->print(); delete s;
     ++nbSol;
   }
