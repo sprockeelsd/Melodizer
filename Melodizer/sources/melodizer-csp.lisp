@@ -21,8 +21,8 @@
 ; <l> is a fraction - the longest authorized event duration
 ; <hd> is a float between 0 and 1 that indicates the maximum rhythmic density
 ;constraints note-starts note-durations chords
-(defmethod! melodizer ( &optional (key 60.0) (mode 0.0))
-    :initvals (60.0 0.0) 
+(defmethod! melodizer (&optional (key 60.0) (mode 0.0))
+    ;:initvals (60.0 0.0) 
     :indoc '("a list of constraints" "the duration of the notes that will be produced" 
             "the starting positions of the notes that will be produced"
              "the chords on top of which the notes have to be placed" "the key" "the mode")
@@ -49,6 +49,7 @@ TODO : add documentation once the code has been modified
         ;return
         (list pitch)
     )
+)
 
 (defmethod! search-next (l)
     :initvals (list nil) 
