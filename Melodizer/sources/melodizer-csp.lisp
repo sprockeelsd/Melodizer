@@ -1,5 +1,6 @@
 (in-package :om)
 ;taken from rhythm box
+;https://github.com/blapiere/Rhythm-Box
 (defclass constraint ()
     ((cst-function :initform nil :initarg :cstf :accessor cstf) 
     ;a constraint function that always have a space as 1st arg and a list as 2nd arg
@@ -10,9 +11,11 @@
     ;the list args to be the 2nd argument of the cst-function
 )
 
+;taken from rhythm box
+;https://github.com/blapiere/Rhythm-Box
 (defun post-constraint (sp cst N pitch)
-    "Call the constraint function with the rhythm-box data and the constraint arglist."
-    (funcall (cstf cst) sp N pitch (args cst))
+    "Call the constraint function with the melodizer data and the constraint arglist."
+    (funcall (cstf cst) sp pitch (args cst))
 )
 
 ; <constraints> is a list of <constraint> object
@@ -35,19 +38,21 @@
     (let ((sp (gil::new-space))
         pitch dfs)
 
-        ;first, create the variables
-        (setq pitch (gil::add-int-var-array sp 10 60 108))
+        ; first, create the variables
+        (setq pitch (gil::add-int-var-array sp 10 60 90))
 
-        ;then, post the constraints
+        ; then, post the constraints
         (gil::g-distinct sp pitch)
 
-        ;branching
+        ; branching
         (gil::g-branch sp pitch 0 0)
 
-        ;search engine
+        ; search engine
         (setq se (gil::search-engine sp nil))
 
-        ;return
+        ; return
+        ; first shuffle the list of solutions so they are not in increasing order
+        (list-shuffler pitch)
         (list se pitch note-starts note-durations)
     )
 )

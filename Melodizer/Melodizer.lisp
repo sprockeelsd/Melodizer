@@ -12,14 +12,7 @@
     melodizer
     search-next
     all-different-notes
-    cst-rel-pulse
-    cst-keep-pulses
-    cst-at-most-pulses
-    cst-at-most-nb-notes
-    cst-keep-nb-pulses
-    cst-keep-note-drts
-    cst-at-least-notes
-    cst-insert-pattern)
+    )
 *melodizer-pkg*)
 
 (AddPackage2Pack *melodizer-pkg* *om-package-tree*)
