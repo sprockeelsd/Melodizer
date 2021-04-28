@@ -6,6 +6,7 @@
     (cons (* 100 (first l)) (to-midicent (rest l)))))
 
 ; shuffles a list
+; from https://gist.github.com/shortsightedsid/62d0ee21bfca53d9b69e
 (defun list-shuffler (input-list &optional accumulator)
   "Shuffle a list using tail call recursion."
   (if (eq input-list nil)
