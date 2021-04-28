@@ -36,7 +36,7 @@
         pitch dfs)
 
         ;first, create the variables
-        (setq pitch (gil::add-int-var-array sp 10 90 108))
+        (setq pitch (gil::add-int-var-array sp 10 60 108))
 
         ;then, post the constraints
         (gil::g-distinct sp pitch)
@@ -68,7 +68,7 @@ Get the next solution for the rhythm csp described in the input rhythm-space.
         ;Get the values of the solution
         (setq sol (gil::search-next se))
         (if (null sol) (error "No solution or no more solution."))
-        (setq pitches (gil::g-values sol pitch*))
+        (setq pitches (to-midicent (gil::g-values sol pitch*)))
 
 
         ;return a list of integers with the solution

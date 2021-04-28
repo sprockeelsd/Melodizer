@@ -2,7 +2,7 @@
 (defvar *melodizer-sources-dir* nil)
 (setf *melodizer-sources-dir* (make-pathname :directory (append (pathname-directory *load-pathname*) '("sources"))))
 
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "rhythm-utils" :type "lisp"))
+(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-utils" :type "lisp"))
 (compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csp" :type "lisp"))
 (compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csts" :type "lisp"))
 
