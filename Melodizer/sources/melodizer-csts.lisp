@@ -13,10 +13,6 @@
 ; that calls the <cst> by rearranging the args.
 
 
-; Constraint REL-PULSE
-; The specified positions must contain a note of duration with the specified relation 
-; to the specified value (e.g. equal to 1/4 or greater than 1/16).
-
 ; ALL-DIFFERENT-NOTES constraint
 ; sp is the space
 ; notes is a list of IntVars
@@ -24,6 +20,49 @@
 ; (e.g. 60 and 72 can be values taken by two variables simultaneously even though they both represent a C)
 (defun all-different-notes (sp notes)
     (gil::g-distinct sp notes)
+)
+
+; IN TONALITY constraint
+; the notes are in the tonality specified by the user(e.g. C major)
+; a mode of 0 represents major, and 1 represents minor
+(defun in-tonality (sp notes key mode)
+    (let (scale note admissible-notes i)
+        ; set the scale to major or minor
+        (if (= mode 0) 
+            (setq scale (list 2 2 1 2 2 2 1)); major
+            (setq scale (list 2 1 2 2 1 2 2)); minor
+        )
+        ; then, create a list and add the notes in it
+        (setq note key)
+        (setq i 0)
+        (setq admissible-notes (list))
+        ; add all notes over the key, then add all notes under the key
+        (while (<= note 108) :do
+            (setq admissible-notes (cons note admissible-notes)); add it to the list
+            (if (>= i 7)
+                (setq i 0)
+            )
+            (incf note (nth i scale)); note = note + scale[i mod 6]
+            (incf i 1); i++
+        )
+
+        (setq note key)
+        (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
+        (setq i 1)
+
+        (while (>= note 21) :do
+            (setq admissible-notes (cons note admissible-notes)); add it to the list
+            (if (>= i 7)
+                (setq i 0)
+            )
+            (decf note (nth (- 6 i) scale)); note = note - scale[6-i mod 6]
+            (incf i 1); i++
+        )
+        ; set the domain of each variable
+        (loop for j :from 0 :below (length notes) :do
+            (gil::g-dom sp (nth j notes) admissible-notes)
+        )
+    )
 )
 
 ; this function is from rhythm-box 

@@ -16,3 +16,5 @@
 		 (nth (random (length input-list)) input-list))
 	(list-shuffler (cdr input-list) 
 				 (append accumulator (list (car input-list)))))))
+
+

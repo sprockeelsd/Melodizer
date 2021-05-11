@@ -39,11 +39,12 @@
         pitch dfs)
 
         ; first, create the variables
-        (setq pitch (gil::add-int-var-array sp 10 60 90))
+        (setq pitch (gil::add-int-var-array sp 10 21 108))
 
         ; then, post the constraints
-        (gil::g-distinct sp pitch)
-
+        ;(all-different-notes sp pitch)
+        (in-tonality sp pitch 60 0)
+        
         ; branching
         (gil::g-branch sp pitch 0 0)
 
@@ -51,32 +52,31 @@
         (setq se (gil::search-engine sp nil))
 
         ; return
-        ; first shuffle the list of solutions so they are not in increasing order
-        (list-shuffler pitch)
         (list se pitch note-starts note-durations)
     )
 )
 
 (defmethod! search-next (l)
     :initvals (list nil) 
-    :indoc '("a rhythm-space")
+    :indoc '("a musical-space")
     :icon 330
     :doc "
-Get the next solution for the rhythm csp described in the input rhythm-space.
+Get the next solution for the csp described in the input musical-space.
 "
     (let ((se (first l))
          (pitch* (second l))
          (starts (third l))
          (durations (fourth l))
-         sol pitches rtree)
+         sol pitches)
         
         ;Get the values of the solution
         (setq sol (gil::search-next se))
         (if (null sol) (error "No solution or no more solution."))
+        ;(print gil::g-values pitch*)
         (setq pitches (to-midicent (gil::g-values sol pitch*)))
+        (print pitches)
 
-
-        ;return a list of integers with the solution
+        ;return a chord-seq object
         (make-instance 'chord-seq
             :lmidic pitches
             :lonset starts
