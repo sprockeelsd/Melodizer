@@ -39,14 +39,18 @@
         pitch dfs)
 
         ; first, create the variables
-        (setq pitch (gil::add-int-var-array sp 10 21 108))
+        (setq pitch (gil::add-int-var-array sp 10 60 72))
 
         ; then, post the constraints
         ;(all-different-notes sp pitch)
         (in-tonality sp pitch 60 0)
+        ;(interval-between-adjacent-notes sp pitch)
         
         ; branching
+        ; in order branching
         (gil::g-branch sp pitch 0 0)
+        ;random branching
+        ;(gil::g-branch-random sp pitch 1 2)
 
         ; search engine
         (setq se (gil::search-engine sp nil))
