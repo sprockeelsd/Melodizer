@@ -71,7 +71,7 @@
         (setq admissible-notes (list))
         ; add all notes over the key, then add all notes under the key
         (while (<= note 108) :do
-            (setq admissible-notes (cons note admissible-notes)); add it to the list
+            (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
             (if (>= i 7)
                 (setq i 0)
             )

@@ -81,8 +81,8 @@ class OpenMusicTool : public Space {
     //admissible intervals with the highest note of the chord
     const vector<int> admissibleIntervalsWithHighNoteFromChord{3, 4, 5, 7, 8, 9, 12};
     
-    const IntSet admissibleIntervalsBetweenAdjacentNotes{-1, -2, -3, -4, -5, -7, -8, -9, -12, 
-                                                          1, 2, 3, 4, 5, 7, 8, 9, 12};
+    const IntSet admissibleIntervalsBetweenAdjacentNotes{-1, -2, -3, -4, -5, -7, -8, -9, -12,
+                                                          0, 1, 2, 3, 4, 5, 7, 8, 9, 12};
 
     int minimum;
 
@@ -111,7 +111,7 @@ class OpenMusicTool : public Space {
         dom(*this, temp[1], pitch[i+1]);
         dom(*this, temp[2], intervals[i]);
 
-        //linking the temporary constraints to the ones they represent
+        //linking the temporary variables to the ones they represent
         rel(*this, temp[0], IRT_EQ, pitch[i]);
         rel(*this, temp[1], IRT_EQ, pitch[i+1]);
         rel(*this, temp[2], IRT_EQ, intervals[i]);
@@ -374,7 +374,9 @@ class OpenMusicTool : public Space {
       dissonnanceResolution(key, major);
 
       // post branching
-      branch(*this, pitch, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
+      Rnd r1(12U);
+      Rnd r2(13U);
+      branch(*this, pitch, INT_VAR_RND(r1), INT_VAL_RND(r2));
     }
     // search support
     OpenMusicTool(OpenMusicTool& s) : Space(s) {

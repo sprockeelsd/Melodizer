@@ -42,8 +42,10 @@
         (setq pitch (gil::add-int-var-array sp 10 60 72))
 
         ; then, post the constraints
-        ;(all-different-notes sp pitch)
         (in-tonality sp pitch 60 0)
+
+        ;(all-different-notes sp pitch)
+
         ;(interval-between-adjacent-notes sp pitch)
         
         ; branching
@@ -74,6 +76,7 @@ Get the next solution for the csp described in the input musical-space.
          sol pitches)
         
         ;Get the values of the solution
+
         (setq sol (gil::search-next se))
         (if (null sol) (error "No solution or no more solution."))
         ;(print gil::g-values pitch*)
@@ -87,5 +90,14 @@ Get the next solution for the csp described in the input musical-space.
             :ldur durations
         )
 
+    )
+)
+; recursively call search-next until there are no more solutions, and collect the result in sols
+(defmethod! search-all (l)
+    (let ((sols (list))
+         sol)
+    
+        (set sol (search-next (l)))
+        
     )
 )
