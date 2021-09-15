@@ -19,9 +19,6 @@
 )
 
 ; <constraints> is a list of <constraint> object
-; <chords> is a chord sequence
-; <note-starts> is a list of integers representing the start of each note
-; <note-durations> is a list of integers representing the duration of each note
 ; <key> is the key in which the melody is
 ; <mode> is the mode the melody is in (major, minor)
 ; add constraints to signature later
@@ -62,6 +59,41 @@
     )
 )
 
+(defmethod! voicemelodizer ( input &optional (key 60.0) (mode 0.0))
+    :initvals (list (make-instance 'voice) 60.0 0.0)
+    :indoc '("a voice object" 
+            "the key" 
+            "the mode"
+            )
+    :icon 921
+    :doc "TODO : add documentation once the code does something interesting"
+    (let ((sp (gil::new-space))
+        pitch dfs)
+
+        ; first, create the variables
+        (setq pitch (gil::add-int-var-array sp 10 60 72))
+
+        ; then, post the constraints
+        (in-tonality sp pitch 60 0)
+
+        ;(all-different-notes sp pitch)
+
+        ;(interval-between-adjacent-notes sp pitch)
+        
+        ; branching
+        ; in order branching
+        (gil::g-branch sp pitch 0 0)
+        ;random branching
+        ;(gil::g-branch-random sp pitch 1 2)
+
+        ; search engine
+        (setq se (gil::search-engine sp nil))
+
+        ; return
+        (list se pitch)
+    )
+)
+
 (defmethod! search-next (l)
     :initvals (list nil) 
     :indoc '("a musical-space")
@@ -89,15 +121,44 @@ Get the next solution for the csp described in the input musical-space.
             :lonset starts
             :ldur durations
         )
-
     )
 )
-; recursively call search-next until there are no more solutions, and collect the result in sols
-(defmethod! search-all (l)
-    (let ((sols (list))
-         sol)
-    
-        (set sol (search-next (l)))
+
+(defmethod! search-next-voice (l)
+    :initvals (list nil) 
+    :indoc '("a musical-space")
+    :icon 330
+    :doc "
+Get the next solution for the csp described in the input musical-space.
+"
+    (let ((se (first l))
+         (pitch* (second l))
+         sol pitches)
         
+        ;Get the values of the solution
+
+        (setq sol (gil::search-next se))
+        (if (null sol) (error "No solution or no more solution."))
+        ;(print gil::g-values pitch*)
+        (setq pitches (to-midicent (gil::g-values sol pitch*)))
+        (print "pitches" )
+        (print pitches)
+
+        ;return a voice object
+        (make-instance 'voice
+            :tree (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4))
+            :chords pitches
+            :tempo 72
+        )
+    )
+)
+
+
+; gets all the chords from a voice object
+(defmethod! getvoice (inputvoice)
+    (let ((chords (chords inputvoice)))
+        (dolist (c chords)
+            (print (lmidic c))
+        )
     )
 )

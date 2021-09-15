@@ -17,4 +17,26 @@
 	(list-shuffler (cdr input-list) 
 				 (append accumulator (list (car input-list)))))))
 
+; taken from rhythm box (add link)
+
+(defun get-bars (tree)
+    "Get the bars of a tree (? bars)"
+    (cadr tree)
+)
+
+(defun get-signature (bar)
+    "Get the signature (N D) of a bar ((N D) ps)."
+    (car bar)
+)
+
+(defmethod get-N ((x voice))
+    "Get the N part of the signature of the tree of the input voice as if
+    it was a long single bar."
+    (apply '+ (mapcar #'(lambda(z) (first (get-signature z))) (get-bars (tree x))))
+)
+
+(defmethod get-D ((x voice))
+    "Get the D part of the signature of the tree of the input voice."
+    (second (get-signature (first (get-bars (tree x)))))
+)
 
