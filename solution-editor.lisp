@@ -2,7 +2,7 @@
 ;;; Minimal example of an object and its editor in OM 
 ;;;===============================
 
-(in-package :om)
+(in-package :cl-user)
 
 (om::defclass! my-object () 
    ((slot1 :accessor slot1 :initarg :slot1 :initform nil :documentation "slot 1")

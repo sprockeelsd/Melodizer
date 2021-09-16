@@ -5,7 +5,7 @@
 (compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-utils" :type "lisp"))
 (compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csp" :type "lisp"))
 (compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csts" :type "lisp"))
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "my-object" :type "lisp"))
+(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melody-finder" :type "lisp"))
 
 (defvar *melodizer-pkg* (omng-make-new-package 'melodizer))
 
