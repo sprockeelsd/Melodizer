@@ -1,18 +1,21 @@
 ;;;===============================
-;;; Object to find a desired solution amongst the possible solutions
+;;; Object to find a desired solution among the possible solutions
 ;;;===============================
-
 (in-package :om)
 
+;change the input from a voice to 2 inputs : the tree and the pitches?
 (om::defclass! melody-finder () 
+  ;attributes
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played")
     (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP")
     (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP")
-    (slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
+    (slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2") ; to do some testing
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
-  (:doc "This class implements melody-finder")
+  (:doc "This class implements melody-finder.
+        It takes as input a voice object that is a possible solution for the CSP
+        and allows to search among the solutions.")
 )
 
 
@@ -49,14 +52,16 @@
       (om::om-make-point 80 20) ; size
       "Next"
       :di-action #'(lambda (b)
-                   (print "Finding the next solution"))
+                   (print "Searching for the next solution"))
+                   ;do something (search-next from melodizer-csp to modify so it works here)
     )
-    ; button to restart the search
+    ; button to start or restart the search, not sure if I will keep it here
     (om::om-make-dialog-item 
       'om::om-button
       (om::om-make-point 100 10) ; position
       (om::om-make-point 80 20) ; size
       "Restart"
+      ; for now, it doesn't do that
       :di-action #'(lambda (b) 
                     (dolist (e (chords (input-chords (object self))))
                       (print (lmidic e))
@@ -70,11 +75,10 @@
   self
 )
 
-(defmethod get-slot-2 ((self melody-finder)) (slot2 self))
+;(defmethod get-slot-2 ((self melody-finder)) 
+;  (slot2 self)
+;)
 
-(defmethod! simple-method (finder)
-  (print (slot2 finder))
-)
 
 
 

@@ -7,9 +7,6 @@
 #include<vector>
 #include<string>
 
-#include "Event.h"
-#include "Bar.h"
-
 int main(int argc, char* argv[]);
 
 #endif

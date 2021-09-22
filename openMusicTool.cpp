@@ -1,7 +1,5 @@
 #include "OpenMusicTool.h"
 
-#include "Event.cpp"
-
 using namespace Gecode;
 using namespace std;
 
@@ -87,6 +85,10 @@ class OpenMusicTool : public Space {
     int minimum;
 
   public:
+
+    IntVarArray getPitch(){
+      return pitch;
+    }
     /*
       dissonnance resolution : les sensibles (4ème ou 7ème) vont vers la tonique (uniquement en haut pour les 7èmes)
       - if a note is a seventh or a fourth for the scale, the next note has to be the key
@@ -401,6 +403,18 @@ class OpenMusicTool : public Space {
     }
 };
 
+// retourne le ratio de notes identiques dans les 2 solutions TESTED, works
+double compareSol(vector<int> sol1, vector<int> sol2){
+  int same = 0;
+  for(int i = 0; i < sol1.size(); ++i){
+    if(sol1[i] == sol2[i]){
+      ++same;
+    }
+  }
+  return (same*1.0) / sol1.size();
+}
+
+
 // main function
 int main(int argc, char* argv[]) {
   //general test to see if constraints work together
@@ -419,13 +433,13 @@ int main(int argc, char* argv[]) {
   vector<int> inputStarts{0, 8, 14, 16, 22, 24};
 
   //simple test to test if a single constraint works
-  /*vector<int> chord1{55, 60, 64};
-  vector<vector<int>> chordSeq{chord1};
-  vector<int> chordDur{16};
-  vector<int> chordStar{0};
+  //vector<int> chord1{55, 60, 64};
+  //vector<vector<int>> chordSeq{chord1};
+  //vector<int> chordDur{16};
+  //vector<int> chordStar{0};
 
-  vector<int> inputDurations{8, 6, 2};
-  vector<int> inputStarts{0, 8, 14};*/
+  //vector<int> inputDurations{8, 6, 2};
+  //vector<int> inputStarts{0, 8, 14};
 
 
 
@@ -434,10 +448,12 @@ int main(int argc, char* argv[]) {
   DFS<OpenMusicTool> e(m);
   delete m;
   int nbSol = 0;
+  //vector<OpenMusicTool*> solutions(0);
   // search and print all solutions
   while (OpenMusicTool* s = e.next()) {
     //s->printOM(); delete s;
-    s->print(); delete s;
+    //s->print(); delete s;
+    std::cout << s->getPitch() << "\n";
     ++nbSol;
   }
   std::cout << "number of solutions : " << nbSol << "\n";

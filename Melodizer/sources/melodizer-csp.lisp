@@ -71,7 +71,7 @@
         pitch dfs)
 
         ; first, create the variables
-        (setq pitch (gil::add-int-var-array sp 10 60 72))
+        (setq pitch (gil::add-int-var-array sp 8 60 72))
 
         ; then, post the constraints
         (in-tonality sp pitch 60 0)
@@ -150,6 +150,7 @@ Get the next solution for the csp described in the input musical-space.
             :chords pitches
             :tempo 72
         )
+        ;(list (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4)) pitches 72)
     )
 )
 
