@@ -5,17 +5,20 @@
   (if (null l) nil
     (cons (* 100 (first l)) (to-midicent (rest l)))))
 
-; shuffles a list
-; from https://gist.github.com/shortsightedsid/62d0ee21bfca53d9b69e
-(defun list-shuffler (input-list &optional accumulator)
-  "Shuffle a list using tail call recursion."
-  (if (eq input-list nil)
-      accumulator
-      (progn
-	(rotatef (car input-list) 
-		 (nth (random (length input-list)) input-list))
-	(list-shuffler (cdr input-list) 
-				 (append accumulator (list (car input-list)))))))
+; takes a rhythm tree as argument and returns the number of events in it
+(defmethod get-events-from-rtree (rtree)
+    (let ((l (first (rest rtree))) ; get the first element of the list
+        (nb 0)); the number of events
+        (dolist (bar l); for each bar
+            (dolist (elem (second bar)); count each event in the bar
+                (setq nb (+ nb 1))
+            )
+        )
+        (print nb)
+        nb
+    )
+)
+    
 
 ; taken from rhythm box (add link)
 
@@ -40,3 +43,14 @@
     (second (get-signature (first (get-bars (tree x)))))
 )
 
+; shuffles a list
+; from https://gist.github.com/shortsightedsid/62d0ee21bfca53d9b69e
+(defun list-shuffler (input-list &optional accumulator)
+  "Shuffle a list using tail call recursion."
+  (if (eq input-list nil)
+      accumulator
+      (progn
+	(rotatef (car input-list) 
+		 (nth (random (length input-list)) input-list))
+	(list-shuffler (cdr input-list) 
+				 (append accumulator (list (car input-list)))))))

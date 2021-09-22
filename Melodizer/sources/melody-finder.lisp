@@ -7,10 +7,10 @@
 (om::defclass! melody-finder () 
   ;attributes
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played")
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "rhythm of the melody to be found")
     (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP")
-    (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP in the form of a voice object")
     (cspsol :accessor cspsol :initarg :cspsol :initform nil :documentation "solution of the CSP")
-    (slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2") ; to do some testing
+    (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP in the form of a voice object")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -57,7 +57,7 @@
                       (print (lmidic e))
                     ) |#
                     (let init 
-                      (setq init (voicemelodizer (input-chords (object self)))); get the search engine and the first solution of the CSP
+                      (setq init (voicemelodizer (input-chords (object self)) (input-rhythm (object self)))); get the search engine and the first solution of the CSP
                       ; update the fields of the object to their new value
                       (setf (search-engine (object self)) (first init))
                       (setf (cspsol (object self)) (second init))
@@ -76,7 +76,7 @@
       :di-action #'(lambda (b)
                     (print "Searching for the next solution")
                     (let sol 
-                      (setf (solution (object self)) (search-next-voice (list (search-engine (object self)) (cspsol (object self)))))
+                      (setf (solution (object self)) (search-next-voice (list (search-engine (object self)) (cspsol (object self))) (input-rhythm (object self))))
                     )
                   )
                     
@@ -87,84 +87,6 @@
   ; return the editor:
   self
 )
-
-(defmethod voicemelodizer ( input &optional (key 60.0) (mode 0.0))
-    :initvals (list (make-instance 'voice) 60.0 0.0)
-    :indoc '("a voice object" 
-            "the key" 
-            "the mode"
-            )
-    :icon 921
-    :doc "TODO : add documentation once the code does something interesting"
-    (let ((sp (gil::new-space))
-        pitch dfs)
-
-        ; first, create the variables
-        (setq pitch (gil::add-int-var-array sp 8 60 72))
-
-        ; then, post the constraints
-        (in-tonality sp pitch 60 0)
-
-        ;(all-different-notes sp pitch)
-
-        ;(interval-between-adjacent-notes sp pitch)
-        
-        ; branching
-        ; in order branching
-        (gil::g-branch sp pitch 0 0)
-        ;random branching
-        ;(gil::g-branch-random sp pitch 1 2)
-
-        ; search engine
-        (setq se (gil::search-engine sp nil))
-
-        ; return
-        (list se pitch)
-    )
-)
-
-(defmethod search-next-voice (l)
-    :initvals (list nil) 
-    :indoc '("a musical-space")
-    :icon 330
-    :doc "
-Get the next solution for the csp described in the input musical-space.
-"
-    (let ((se (first l))
-         (pitch* (second l))
-         sol pitches)
-        
-        ;Get the values of the solution
-
-        (setq sol (gil::search-next se))
-        (if (null sol) (error "No solution or no more solution."))
-        ;(print gil::g-values pitch*)
-        (setq pitches (to-midicent (gil::g-values sol pitch*)))
-        (print "pitches" )
-        (print pitches)
-
-        ;return a voice object
-        (make-instance 'voice
-            :tree (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4))
-            :chords pitches
-            :tempo 72
-        )
-        ;(list (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4)) pitches 72)
-    )
-)
-
-;(defmethod get-slot-2 ((self melody-finder)) 
-;  (slot2 self)
-;)
-
-
-
-
-    
-
-
-
-
 
 
 
