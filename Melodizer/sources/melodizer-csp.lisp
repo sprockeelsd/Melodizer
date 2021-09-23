@@ -36,12 +36,12 @@
         pitch dfs)
 
         ; first, create the variables
-        (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 72))
+        (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 84))
 
         ; then, post the constraints
         (in-tonality sp pitch 60 0)
 
-        ;(all-different-notes sp pitch)
+        (all-different-notes sp pitch)
 
         ;(interval-between-adjacent-notes sp pitch)
         
@@ -55,7 +55,7 @@
         (setq se (gil::search-engine sp nil))
 
         ; return
-        (list se pitch rhythm)
+        (list se pitch)
     )
 )
 

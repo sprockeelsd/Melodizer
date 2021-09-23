@@ -10,8 +10,18 @@
     (let ((l (first (rest rtree))) ; get the first element of the list
         (nb 0)); the number of events
         (dolist (bar l); for each bar
+            ;(print "bar")
+            ;(print bar)
             (dolist (elem (second bar)); count each event in the bar
-                (setq nb (+ nb 1))
+                ;(print "elem")
+                ;(print elem)
+                (if (typep elem 'list); if the element of the bar is a list
+                        (dolist (event (second elem))
+                            (print event)
+                            (setq nb (+ nb 1))
+                        )
+                    (setq nb (+ nb 1)); if it is just a number
+                )
             )
         )
         (print nb)
