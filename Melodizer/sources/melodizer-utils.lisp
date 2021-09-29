@@ -5,21 +5,17 @@
   (if (null l) nil
     (cons (* 100 (first l)) (to-midicent (rest l)))))
 
-; takes a rhythm tree as argument and returns the number of events in it
+; takes a rhythm tree as argument and returns the number of events in it (doesn't work with dotted notes for now)
 (defmethod get-events-from-rtree (rtree)
     (let ((l (first (rest rtree))) ; get the first element of the list
         (nb 0)); the number of events
         (dolist (bar l); for each bar
-            ;(print "bar")
-            ;(print bar)
             (dolist (elem (second bar)); count each event in the bar
-                ;(print "elem")
-                ;(print elem)
                 (if (typep elem 'list); if the element of the bar is a list
-                        (dolist (event (second elem))
-                            (print event)
-                            (setq nb (+ nb 1))
-                        )
+                    (dolist (event (second elem))
+                        ;(print event)
+                        (setq nb (+ nb 1))
+                    )
                     (setq nb (+ nb 1)); if it is just a number
                 )
             )

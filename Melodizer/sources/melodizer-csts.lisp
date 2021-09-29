@@ -22,6 +22,21 @@
     (gil::g-distinct sp notes)
 )
 
+; PRECEDENCE TEST WORKS
+#| (defun precedence (sp notes s u)
+    (gil::g-precede sp notes s u)
+) |#
+
+; DISSONNANCE RESOLUTION constraint
+; ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
+; if it is a seventh note, it is followed by the fundamental that is above it (+1 if major, +2 if minor)
+; if it is a fourth note, it is followed by either of the fundamentals around it (+7 or -5)
+(defun dissonnance-resolution (sp notes key mode)
+    #| (if (string-equal mode "major")
+
+    ) |#
+)
+
 ; INTERVAL-BETWEEN-ADJACENT-NOTES constraint
 ;ensures that the interval between two adjacent notes is valid
 
@@ -35,7 +50,7 @@
 (defun in-tonality (sp notes key mode)
     (let (scale note admissible-notes i)
         ; set the scale to major or minor
-        (if (= mode 0) 
+        (if (string-equal mode "major") ; maybe add a security so if the user types something wrong it doesn't set the mode to minor by default
             (setq scale (list 2 2 1 2 2 2 1)); major
             (setq scale (list 2 1 2 2 1 2 2)); minor
         )

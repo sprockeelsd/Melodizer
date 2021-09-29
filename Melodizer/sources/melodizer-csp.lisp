@@ -23,7 +23,7 @@
 ; <key> is the key in which the melody is
 ; <mode> is the mode of the tonality (major, minor)
 ; add constraints to signature later
-(defmethod voicemelodizer ( input rhythm &optional (key 60.0) (mode 0.0))
+(defmethod voicemelodizer ( input rhythm &optional (key 60.0) (mode "major"))
     :initvals (list (make-instance 'voice) 60.0 0.0)
     :indoc '("a voice object" 
             "a rhythm tree"
@@ -32,14 +32,16 @@
             )
     :icon 921
     :doc "Creates the CSP"
-    (let ((sp (gil::new-space))
+    (let ((sp (gil::new-space)); create the space
         pitch dfs)
 
-        ; first, create the variables
+        ; create the variables
         (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 84))
 
         ; then, post the constraints
-        (in-tonality sp pitch 60 0)
+        (in-tonality sp pitch key mode)
+
+        ;(precedence sp pitch 72 71)
 
         (all-different-notes sp pitch)
 
