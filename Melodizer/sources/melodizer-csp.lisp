@@ -33,25 +33,34 @@
     :icon 921
     :doc "Creates the CSP"
     (let ((sp (gil::new-space)); create the space
-        pitch dfs)
+        pitch intervals dfs)
 
-        ; create the variables
+
+        ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 84))
+        ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
+        (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
+
 
         ; then, post the constraints
         (in-tonality sp pitch key mode)
 
         ;(precedence sp pitch 72 71)
 
-        (all-different-notes sp pitch)
+        ;(all-different-notes sp pitch)
 
-        ;(interval-between-adjacent-notes sp pitch)
+        (interval-between-adjacent-notes sp pitch intervals)
         
         ; branching
         ; in order branching
-        (gil::g-branch sp pitch 0 0)
-        ;random branching
-        ;(gil::g-branch-random sp pitch 1 2)
+         #| variable strategy:
+            0 : INT_VAR_SIZE_MIN()
+            1 : INT_VAR_RND(r)
+        value strategy:
+            0 : INT_VAL_MIN()
+            1 : INT_VAL_RND(r) |#
+        ;(gil::g-branch sp pitch var_strat val_strat)
+        (gil::g-branch sp pitch 1 1)
 
         ; search engine
         (setq se (gil::search-engine sp nil))
@@ -86,7 +95,7 @@ Get the next solution for the csp described in the input musical-space.
             ;:tree (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4))
             :tree rhythm
             :chords pitches
-            :tempo 72
+            :tempo 60
         )
         ;(list (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4)) pitches 72)
     )

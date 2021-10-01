@@ -6,18 +6,19 @@
 ;change the input from a voice to 2 inputs : the tree and the pitches?
 (om::defclass! melody-finder () 
   ;attributes
-  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played")
-    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "rhythm of the melody to be found")
-    (key :accessor key :initarg :key :initform 60 :documentation "The key othe melody is in (default : C")
+  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played in the form of a voice object")
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "rhythm of the melody in the form of a rhythm tree. To make the rhythm tree,
+    express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature"); maybe allow the rhythm to be a voice object as well?
+    (key :accessor key :initarg :key :initform 60 :documentation "The key othe melody is in (default : C") ; maybe change that to the name of the note (C#, E,...)
     (mode :accessor mode :initarg :mode :initform "major" :documentation "the mode the melody is in (default : major) ")
-    (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP")
-    (cspsol :accessor cspsol :initarg :cspsol :initform nil :documentation "solution of the CSP")
+    (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP, shouldn't be touched")
+    (cspsol :accessor cspsol :initarg :cspsol :initform nil :documentation "solution of the CSP, shouldn't be touched")
     (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP in the form of a voice object")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
   (:doc "This class implements melody-finder.
-        UPDATE THIS")
+        UPDATE THIS to a complete description of the tool")
 )
 
 
@@ -37,13 +38,12 @@
   )
 )
 
-
 (defmethod initialize-instance ((self my-editor) &rest args)
 
   ; To access the melody-finder object, (object self)
   
   ;;; do what needs to be done by default
-  (call-next-method) ; start the search by default?
+  (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
   
   (om::om-add-subviews 
     self

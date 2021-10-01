@@ -109,9 +109,9 @@ class OpenMusicTool : public Space {
         //pitch[i] - pitch[i+1] - z[i] = 0
         IntVarArray temp(*this, 3, -12, 108);
         //initializiation
-        dom(*this, temp[0], pitch[i]);
+        /* dom(*this, temp[0], pitch[i]);
         dom(*this, temp[1], pitch[i+1]);
-        dom(*this, temp[2], intervals[i]);
+        dom(*this, temp[2], intervals[i]); */
 
         //linking the temporary variables to the ones they represent
         rel(*this, temp[0], IRT_EQ, pitch[i]);

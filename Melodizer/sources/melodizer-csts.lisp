@@ -4,31 +4,17 @@
 ; SAMPLE CONSTRAINTS ;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-; Constraints are defined as instance of the class <constraint>, which is a container
-; for a function that posts the gecode constraints and its parameters.
-; 
-; To create a constraint, one must create an OM method (i.e. via defmethod!) that returns
-; the constraint instance. 
-; For readability reasons, the following constraints always return a function called "post-<cst>"
-; that calls the <cst> by rearranging the args.
-
-
 ; ALL-DIFFERENT-NOTES constraint WORKS
 ; sp is the space
 ; notes is a list of IntVars
-; ensures that all the variables in the list are different in terms of strict value, not in terms of notes 
+; ensures that all the notes are different in terms of strict value, not in terms of notes
 ; (e.g. 60 and 72 can be values taken by two variables simultaneously even though they both represent a C)
 (defun all-different-notes (sp notes)
     (gil::g-distinct sp notes)
 )
 
-; PRECEDENCE TEST WORKS
-#| (defun precedence (sp notes s u)
-    (gil::g-precede sp notes s u)
-) |#
-
 ; DISSONNANCE RESOLUTION constraint
-; ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
+; Ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
 ; if it is a seventh note, it is followed by the fundamental that is above it (+1 if major, +2 if minor)
 ; if it is a fourth note, it is followed by either of the fundamentals around it (+7 or -5)
 (defun dissonnance-resolution (sp notes key mode)
@@ -37,16 +23,40 @@
     ) |#
 )
 
-; INTERVAL-BETWEEN-ADJACENT-NOTES constraint
-;ensures that the interval between two adjacent notes is valid
+; INTERVAL-BETWEEN-ADJACENT-NOTES constraint WORKS
+; sp is the space
+; notes is a list of IntVars representing the pitch of the notes
+; intervals is a list of IntVars representing the intervals between successive notes from the notes argument
+; Ensures that the interval between two adjacent notes is valid
+; The interval must be everything up to an octave except for a tritone, a major seven or a minor seven
+; ;(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12) admissible intervals
+; IMPROVEMENT IDEA : PRIORITIZE SMALLER INTERVALS
+(defun interval-between-adjacent-notes (sp notes intervals)
+    (let ((valid-intervals '(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12)))
+        (dolist (interval intervals);restrain the interval domains to acceptable values 
+            (gil::g-dom sp interval valid-intervals)
+        )
+        (loop :for j :from 0 :below (length intervals) :do ;for each interval
+            (let (temp)
+                (setq temp (gil::add-int-var-array sp 3 -12 108)); temporary variables to make it easier to apply the linear constraint
+
+                (gil::g-rel sp (first temp) gil::IRT_EQ (nth j notes)); temp[0] = notes[j]
+                (gil::g-rel sp (second temp) gil::IRT_EQ (nth (+ j 1) notes)); temp[1] = notes[j+1]
+                (gil::g-rel sp (third temp) gil::IRT_EQ (nth j intervals)); temp[2] = intervals[j]
+
+                (gil::g-linear sp '(1 -1 -1) temp gil::IRT_EQ 0); notes[j] - notes[j+1] - intervals[j] = 0
+            )
+        )
+    )
+)
 
 
 ; IN TONALITY constraint WORKS
-; ensures that the notes are in the tonality specified by the user(e.g. C major)
+; Ensures that the notes are in the tonality specified by the user(e.g. C major)
 ; sp is the space
 ; notes is the variable array on which the constraint is executed
-; key is the key, mode is the mode
-; a mode of 0 represents major, and 1 represents minor
+; key is the key 
+;mode is the mode
 (defun in-tonality (sp notes key mode)
     (let (scale note admissible-notes i)
         ; set the scale to major or minor
@@ -59,7 +69,7 @@
         (setq i 0)
         (setq admissible-notes (list))
         ; add all notes over the key, then add all notes under the key
-        (while (<= note 108) :do
+        (while (<= note 127) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
             (if (>= i 7)
                 (setq i 0)
@@ -72,7 +82,7 @@
         (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
         (setq i 1)
 
-        (while (>= note 21) :do
+        (while (>= note 0) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list
             (if (>= i 7)
                 (setq i 0)
