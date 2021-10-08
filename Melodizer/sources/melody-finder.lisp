@@ -72,12 +72,22 @@
                     ;(dolist (e (chords (input-chords (object self))))
                     ;  (print (lmidic e))
                     ;)
-                    (let init 
-                      (setq init (voicemelodizer (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
-                      ; update the fields of the object to their new value
-                      (setf (search-engine (object self)) (first init))
-                      (setf (cspsol (object self)) (second init))
-                      (print "csp constructed")
+                    (cond
+                      ((string-equal (tool-mode (object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
+                        (let init
+                          (setq init (voicemelodizer (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
+                          ; update the fields of the object to their new value
+                          (setf (search-engine (object self)) (first init))
+                          (setf (cspsol (object self)) (second init))
+                          (print "csp constructed")
+                        )
+                      )
+                      ((string-equal (tool-mode (object self)) "Accompagnement-Finder"); not supported yet
+                        (print "This mode is not supported yet")
+                      )
+                      ((string-equal (tool-mode (object self)) "Ornement"); not supported yet
+                        (print "This mode is not supported yet")
+                      )
                     )
                   )
       ;:di-action #'(lambda (b)
