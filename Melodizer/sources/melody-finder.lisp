@@ -72,7 +72,20 @@
       :range '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")
       :value (note-value-to-name (key (object self)))
       :di-action #'(lambda (m)
-        (setf (key (object self)) (name-to-note-value (nth (om-get-selected-item-index m) (om-get-item-list m)))) ; set the tool-mode according to the choice of the user
+        (setf (key (object self)) (name-to-note-value (nth (om-get-selected-item-index m) (om-get-item-list m)))) ; set the key according to the choice of the user
+      )
+    )
+
+    ;pop-up list to select the key of the melody
+    (om-make-dialog-item 
+      'om::pop-up-menu 
+      (om-make-point 30 110) 
+      (om-make-point 80 20) 
+      "Mode selection"
+      :range '("major" "minor"); add pentatonic, chromatic, ... ?
+      :value (mode (object self))
+      :di-action #'(lambda (m)
+        (setf (mode (object self)) (nth (om-get-selected-item-index m) (om-get-item-list m))) ; set the mode according to the choice of the user
       )
     )
 
