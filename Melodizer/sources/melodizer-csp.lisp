@@ -53,14 +53,14 @@
         
         ; branching
         ; in order branching
-         #| variable strategy:
-            0 : INT_VAR_SIZE_MIN()
-            1 : INT_VAR_RND(r)
-        value strategy:
-            0 : INT_VAL_MIN()
-            1 : INT_VAL_RND(r) |#
-        ;(gil::g-branch sp pitch var_strat val_strat)
-        (gil::g-branch sp pitch 1 1)
+        ;variable strategy:
+        ;    0 : INT_VAR_SIZE_MIN()
+        ;    1 : INT_VAR_RND(r)
+        ;value strategy:
+        ;    0 : INT_VAL_MIN()
+        ;    1 : INT_VAL_RND(r)
+        ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
+        (gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
 
         ; search engine
         (setq se (gil::search-engine sp nil))

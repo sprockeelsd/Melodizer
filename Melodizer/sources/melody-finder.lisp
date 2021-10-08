@@ -9,8 +9,10 @@
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played in the form of a voice object")
     (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "rhythm of the melody in the form of a rhythm tree. To make the rhythm tree,
     express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature"); maybe allow the rhythm to be a voice object as well?
-    (key :accessor key :initarg :key :initform 60 :documentation "The key othe melody is in (default : C") ; maybe change that to the name of the note (C#, E,...)
+    (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C") ; maybe change that to the name of the note (C#, E,...)
     (mode :accessor mode :initarg :mode :initform "major" :documentation "the mode the melody is in (default : major) ")
+    (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, 
+    e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement,...")
     (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP, shouldn't be touched")
     (cspsol :accessor cspsol :initarg :cspsol :initform nil :documentation "solution of the CSP, shouldn't be touched")
     (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP in the form of a voice object")
@@ -47,16 +49,29 @@
   
   (om::om-add-subviews 
     self
+    ;pop-up list to select the mode of the tool (melody-finder, accompagnement finder, ...)
+    (om-make-dialog-item 
+      'om::pop-up-menu 
+      (om-make-point 30 20 ) 
+      (om-make-point 200 20) 
+      "Mode selection"
+      :range '("Melody-Finder" "Accompagnement-Finder" "Ornement")
+      :di-action #'(lambda (m)
+        ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
+        (setf (tool-mode (object self)) (nth (om-get-selected-item-index m) (om-get-item-list m))) ; set the tool-mode according to the choice of the user
+      )
+    )
+
     ; button to start or restart the search, not sure if I will keep it here
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 10 10) ; position
+      (om::om-make-point 10 500) ; position
       (om::om-make-point 80 20) ; size
       "Start"
       :di-action #'(lambda (b) 
-                    #| (dolist (e (chords (input-chords (object self))))
-                      (print (lmidic e))
-                    ) |#
+                    ;(dolist (e (chords (input-chords (object self))))
+                    ;  (print (lmidic e))
+                    ;)
                     (let init 
                       (setq init (voicemelodizer (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
                       ; update the fields of the object to their new value
@@ -71,7 +86,7 @@
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 100 10) ; position
+      (om::om-make-point 100 500) ; position
       (om::om-make-point 80 20) ; size
       "Next"
       :di-action #'(lambda (b)
@@ -80,26 +95,29 @@
                       (setf (solution (object self)) (search-next-voice (list (search-engine (object self)) (cspsol (object self))) (input-rhythm (object self))))
                     )
                   )
-                    
-                   ;(search-next-voice (list (search-engine (object self) (cspsol (object self)))))
-                   ;do something (search-next from melodizer-csp to modify so it works here)
     )
+    ;example of a checkbox
     (om::om-make-dialog-item
       'om::om-check-box
-      (om::om-make-point 200 10) ; position
+      (om::om-make-point 200 500) ; position
       (om::om-make-point 20 20) ; size
       "Test"
-      :di-action #'(lambda (b)
+      :di-action #'(lambda (c)
                     (print "checked")
                   )
     )
+    ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
       'om::om-slider
-      (om::om-make-point 10 50) ; position
+      (om::om-make-point 10 550) ; position
       (om::om-make-point 80 20) ; size
       "Slider"
-      :di-action #'(lambda (b)
-                    (print "slide")
+      :direction "horizontal"
+      :range '(1 100)
+      :increment 1
+      :value 1
+      :di-action #'(lambda (s)
+                    (print (om-slider-value b))
                   )
     )
   )

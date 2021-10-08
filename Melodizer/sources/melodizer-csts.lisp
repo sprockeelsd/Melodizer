@@ -50,6 +50,11 @@
     )
 )
 
+; PRECEDENCE test
+(defun precedence(sp notes val1 val2)
+    (gil::g-precede sp notes val1 val2)
+)
+
 
 ; IN TONALITY constraint WORKS
 ; Ensures that the notes are in the tonality specified by the user(e.g. C major)
