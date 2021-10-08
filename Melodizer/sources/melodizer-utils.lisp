@@ -24,6 +24,42 @@
         nb
     )
 )
+
+;converts the Value of a note to its name
+(defmethod note-value-to-name (note)
+    (cond 
+        ((eq note 60) "C")
+        ((eq note 61) "C#")
+        ((eq note 62) "D")
+        ((eq note 63) "Eb")
+        ((eq note 64) "E")
+        ((eq note 65) "F")
+        ((eq note 66) "F#")
+        ((eq note 67) "G")
+        ((eq note 68) "Ab")
+        ((eq note 69) "A")
+        ((eq note 70) "Bb")
+        ((eq note 71) "B")
+    )
+)
+
+;converts the name of a note to its value
+(defmethod name-to-note-value (name)
+    (cond 
+        ((string-equal name "C") 60)
+        ((string-equal name "C#") 61)
+        ((string-equal name "D") 62)
+        ((string-equal name "Eb") 63)
+        ((string-equal name "E") 64)
+        ((string-equal name "F") 65)
+        ((string-equal name "F#") 66)
+        ((string-equal name "G") 67)
+        ((string-equal name "Ab") 68)
+        ((string-equal name "A") 69)
+        ((string-equal name "Bb") 70)
+        ((string-equal name "B") 71)
+    )
+)
     
 
 ; taken from rhythm box (add link)

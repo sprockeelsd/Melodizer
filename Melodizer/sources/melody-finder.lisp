@@ -49,12 +49,13 @@
   
   (om::om-add-subviews 
     self
+
     ;pop-up list to select the mode of the tool (melody-finder, accompagnement finder, ...)
     (om-make-dialog-item 
       'om::pop-up-menu 
-      (om-make-point 30 20 ) 
+      (om-make-point 30 50) 
       (om-make-point 200 20) 
-      "Mode selection"
+      "Tool Mode selection"
       :range '("Melody-Finder" "Accompagnement-Finder" "Ornement")
       :di-action #'(lambda (m)
         ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
@@ -62,11 +63,35 @@
       )
     )
 
+    ;pop-up list to select the key of the melody
+    (om-make-dialog-item 
+      'om::pop-up-menu 
+      (om-make-point 30 80) 
+      (om-make-point 80 20) 
+      "Key selection"
+      :range '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")
+      :value (note-value-to-name (key (object self)))
+      :di-action #'(lambda (m)
+        (setf (key (object self)) (name-to-note-value (nth (om-get-selected-item-index m) (om-get-item-list m)))) ; set the tool-mode according to the choice of the user
+      )
+    )
+
+
+
+    ;temporary replacement to the representation of the solution, to have an idea of the interface
+    (om::om-make-dialog-item
+      'om::text-box
+      (om-make-point 250 100) 
+      (om-make-point 400 150) 
+      "Display of the solution" 
+      :font *om-default-font1* 
+    )
+
     ; button to start or restart the search, not sure if I will keep it here
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 10 500) ; position
-      (om::om-make-point 80 20) ; size
+      (om::om-make-point 250 250) ; position (horizontal, vertical)
+      (om::om-make-point 80 20) ; size (horizontal, vertical)
       "Start"
       :di-action #'(lambda (b) 
                     ;(dolist (e (chords (input-chords (object self))))
@@ -96,7 +121,7 @@
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 100 500) ; position
+      (om::om-make-point 330 250) ; position
       (om::om-make-point 80 20) ; size
       "Next"
       :di-action #'(lambda (b)
@@ -106,10 +131,22 @@
                     )
                   )
     )
+    ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
+    (om::om-make-dialog-item 
+      'om::om-button
+      (om::om-make-point 410 250) ; position
+      (om::om-make-point 120 20) ; size
+      "Save Solution"
+      :di-action #'(lambda (b)
+                    (print "TODO")
+                  )
+    )
+
+
     ;example of a checkbox
     (om::om-make-dialog-item
       'om::om-check-box
-      (om::om-make-point 200 500) ; position
+      (om::om-make-point 200 350) ; position
       (om::om-make-point 20 20) ; size
       "Test"
       :di-action #'(lambda (c)
@@ -119,7 +156,7 @@
     ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
       'om::om-slider
-      (om::om-make-point 10 550) ; position
+      (om::om-make-point 10 350) ; position
       (om::om-make-point 80 20) ; size
       "Slider"
       :direction "horizontal"
