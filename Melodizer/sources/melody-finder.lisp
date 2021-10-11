@@ -76,7 +76,7 @@
       )
     )
 
-    ;pop-up list to select the key of the melody
+    ;pop-up list to select the mode of the melody
     (om-make-dialog-item 
       'om::pop-up-menu 
       (om-make-point 30 110) 
@@ -166,18 +166,27 @@
                     (print "checked")
                   )
     )
+
+    ;text for the slider
+    (om::om-make-dialog-item
+      'om::text-box
+      (om-make-point 660 100) 
+      (om-make-point 200 20) 
+      "Variety of the solutions" 
+      :font *om-default-font1* 
+    )
+
     ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
       'om::om-slider
-      (om::om-make-point 10 350) ; position
-      (om::om-make-point 80 20) ; size
+      (om::om-make-point 660 130) ; position
+      (om::om-make-point 200 20) ; size
       "Slider"
-      :direction "horizontal"
       :range '(1 100)
       :increment 1
       :value 1
       :di-action #'(lambda (s)
-                    (print (om-slider-value b))
+                    (print (om-slider-value s))
                   )
     )
   )

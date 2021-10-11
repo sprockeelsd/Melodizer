@@ -47,7 +47,7 @@
 
         ;(precedence sp pitch 72 71)
 
-        ;(all-different-notes sp pitch)
+        (all-different-notes sp pitch)
 
         (interval-between-adjacent-notes sp pitch intervals)
         
