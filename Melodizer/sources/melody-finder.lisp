@@ -1,35 +1,33 @@
-;;;===============================
-;;; Object to find a desired solution among the possible solutions
-;;;===============================
 (in-package :om)
 
-;change the input from a voice to 2 inputs : the tree and the pitches?
-(om::defclass! melody-finder () 
+;;;====================
+;;;= MELODIZER OBJECT =
+;;;====================
+
+;change the input-rhythm to be a voice object where we don't care about the pitch instead of a rhythm tree
+(om::defclass! melodizer () 
   ;attributes
-  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "the input chords on top of which the melody will be played in the form of a voice object")
-    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "rhythm of the melody in the form of a rhythm tree. To make the rhythm tree,
-    express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature"); maybe allow the rhythm to be a voice object as well?
-    (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C") ; maybe change that to the name of the note (C#, E,...)
-    (mode :accessor mode :initarg :mode :initform "major" :documentation "the mode the melody is in (default : major) ")
-    (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, 
-    e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement,...")
-    (search-engine :accessor search-engine :initarg :search-engine :initform nil :documentation "search engine for the CSP, shouldn't be touched")
-    (cspsol :accessor cspsol :initarg :cspsol :initform nil :documentation "solution of the CSP, shouldn't be touched")
-    (solution :accessor solution :initarg :solution :initform nil :documentation "solution of the CSP in the form of a voice object")
+  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "The input chords on top of which the melody will be played in the form of a voice object.")
+    ; maybe allow the rhythm to be a voice object as well?
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "The rhythm of the melody in the form of a rhythm tree. To make the rhythm tree, express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature.")
+    (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C).")
+    (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
+    (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
+    (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
+    (solution :accessor solution :initarg :solution :initform nil :documentation "The solution of the CSP in the form of a voice object.")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
-  (:doc "This class implements melody-finder.
+  (:doc "This class implements melodizer.
         UPDATE THIS to a complete description of the tool")
 )
 
 
-    
 ;;; OBJECT EDITOR 
 (defclass my-editor (om::editorview) ())
 
-(defmethod om::class-has-editor-p ((self melody-finder)) t)
-(defmethod om::get-editor-class ((self melody-finder)) 'my-editor)
+(defmethod om::class-has-editor-p ((self melodizer)) t)
+(defmethod om::get-editor-class ((self melodizer)) 'my-editor)
 
 (defmethod om::om-draw-contents ((view my-editor))
   (let* ((object (om::object view)))
@@ -42,7 +40,7 @@
 
 (defmethod initialize-instance ((self my-editor) &rest args)
 
-  ; To access the melody-finder object, (object self)
+  ; To access the melodizer object, (object self)
   
   ;;; do what needs to be done by default
   (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
@@ -50,7 +48,9 @@
   (om::om-add-subviews 
     self
 
-    ;pop-up list to select the mode of the tool (melody-finder, accompagnement finder, ...)
+;;; pop-up menus
+
+    ;pop-up list to select the mode of the tool (melodizer, accompagnement finder, ...)
     (om-make-dialog-item 
       'om::pop-up-menu 
       (om-make-point 30 50) 
@@ -89,7 +89,7 @@
       )
     )
 
-
+;;; text boxes (change that because for now they can be edited!)
 
     ;temporary replacement to the representation of the solution, to have an idea of the interface
     (om::om-make-dialog-item
@@ -99,6 +99,17 @@
       "Display of the solution" 
       :font *om-default-font1* 
     )
+
+    ;text for the slider
+    (om::om-make-dialog-item
+      'om::text-box
+      (om-make-point 660 100) 
+      (om-make-point 200 20) 
+      "Variety of the solutions" 
+      :font *om-default-font1* 
+    )
+
+;;; buttons
 
     ; button to start or restart the search, not sure if I will keep it here
     (om::om-make-dialog-item 
@@ -112,11 +123,11 @@
                     ;)
                     (cond
                       ((string-equal (tool-mode (object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
-                        (let init
-                          (setq init (voicemelodizer (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
+                        (let init; list to take the result of the call to melody-finder
+                          (setq init (melody-finder (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
                           ; update the fields of the object to their new value
-                          (setf (search-engine (object self)) (first init))
-                          (setf (cspsol (object self)) (second init))
+                          ; modify so we only store one thing, and then we can pass that as an argument to search-next
+                          (setf (result (object self)) init); store the result of the call to melody finder
                         )
                       )
                       ((string-equal (tool-mode (object self)) "Accompagnement-Finder"); not supported yet
@@ -127,9 +138,8 @@
                       )
                     )
                   )
-      ;:di-action #'(lambda (b)
-      ;             (print "Restarting the search with the new constraints"))
     )
+
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
@@ -139,10 +149,12 @@
       :di-action #'(lambda (b)
                     (print "Searching for the next solution")
                     (let sol 
-                      (setf (solution (object self)) (search-next-voice (list (search-engine (object self)) (cspsol (object self))) (input-rhythm (object self))))
+                      ; modify this according to what is stated above
+                      (setf (solution (object self)) (search-next-melody-finder (result (object self)) (input-rhythm (object self))))
                     )
                   )
     )
+
     ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
     (om::om-make-dialog-item 
       'om::om-button
@@ -154,6 +166,7 @@
                   )
     )
 
+;;; check-boxes
 
     ;example of a checkbox
     (om::om-make-dialog-item
@@ -166,14 +179,7 @@
                   )
     )
 
-    ;text for the slider
-    (om::om-make-dialog-item
-      'om::text-box
-      (om-make-point 660 100) 
-      (om-make-point 200 20) 
-      "Variety of the solutions" 
-      :font *om-default-font1* 
-    )
+;;; sliders
 
     ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
@@ -188,7 +194,7 @@
                     (print (om-slider-value s))
                   )
     )
-  )
+  ); end of add subviews
   ; return the editor:
   self
 )

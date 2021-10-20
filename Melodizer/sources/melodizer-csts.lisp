@@ -5,15 +5,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 
 ; ALL-DIFFERENT-NOTES constraint WORKS
-; sp is the space
-; notes is a list of IntVars
+; <sp> is the space
+; <notes> is a list of IntVars
 ; ensures that all the notes are different in terms of strict value, not in terms of notes
 ; (e.g. 60 and 72 can be values taken by two variables simultaneously even though they both represent a C)
 (defun all-different-notes (sp notes)
     (gil::g-distinct sp notes)
 )
 
-; DISSONNANCE RESOLUTION constraint
+; DISSONNANCE RESOLUTION constraint TODO + develop comments
 ; Ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
 ; if it is a seventh note, it is followed by the fundamental that is above it (+1 if major, +2 if minor)
 ; if it is a fourth note, it is followed by either of the fundamentals around it (+7 or -5)
@@ -24,9 +24,9 @@
 )
 
 ; INTERVAL-BETWEEN-ADJACENT-NOTES constraint WORKS
-; sp is the space
-; notes is a list of IntVars representing the pitch of the notes
-; intervals is a list of IntVars representing the intervals between successive notes from the notes argument
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
+; <intervals> is a list of IntVars representing the intervals between successive notes from the notes argument
 ; Ensures that the interval between two adjacent notes is valid
 ; The interval must be everything up to an octave except for a tritone, a major seven or a minor seven
 ; ;(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12) admissible intervals
@@ -57,11 +57,11 @@
 
 
 ; IN TONALITY constraint WORKS
+; <sp> is the space
+; <notes> is the variable array on which the constraint is executed
+; <key> is the key 
+; <mode> is the mode
 ; Ensures that the notes are in the tonality specified by the user(e.g. C major)
-; sp is the space
-; notes is the variable array on which the constraint is executed
-; key is the key 
-;mode is the mode
 (defun in-tonality (sp notes key mode)
     (let (scale note admissible-notes i)
         ; set the scale to major or minor
@@ -82,7 +82,6 @@
             (incf note (nth i scale)); note = note + scale[i mod 6]
             (incf i 1); i++
         )
-
         (setq note key)
         (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
         (setq i 1)
@@ -99,21 +98,6 @@
         (loop :for j :from 0 :below (length notes) :do
             (gil::g-dom sp (nth j notes) admissible-notes)
         )
-    )
-)
-
-; this function is from rhythm-box 
-; https://github.com/blapiere/Rhythm-Box
-
-(defun rel-to-gil (rel)
-"Convert a relation operator symbol to a GiL relation value."
-    (cond
-        ((eq rel '=) gil::IRT_EQ)
-        ((eq rel '=/=) gil::IRT_NQ)
-        ((eq rel '<) gil::IRT_LE)
-        ((eq rel '=<) gil::IRT_LQ)
-        ((eq rel '>) gil::IRT_GR)
-        ((eq rel '>=) gil::IRT_GQ)
     )
 )
 

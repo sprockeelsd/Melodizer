@@ -63,6 +63,19 @@
     
 
 ; taken from rhythm box (add link)
+; https://github.com/blapiere/Rhythm-Box
+
+(defun rel-to-gil (rel)
+"Convert a relation operator symbol to a GiL relation value."
+    (cond
+        ((eq rel '=) gil::IRT_EQ)
+        ((eq rel '=/=) gil::IRT_NQ)
+        ((eq rel '<) gil::IRT_LE)
+        ((eq rel '=<) gil::IRT_LQ)
+        ((eq rel '>) gil::IRT_GR)
+        ((eq rel '>=) gil::IRT_GQ)
+    )
+)
 
 (defun get-bars (tree)
     "Get the bars of a tree (? bars)"
