@@ -31,7 +31,7 @@
 
         ;time stop
         (setq tstop (gil::t-stop)); create the time stop object
-        (gil::time-stop-init tstop 5000); initialize it (time is expressed in ms)
+        (gil::time-stop-init tstop 1000); initialize it (time is expressed in ms)
 
         ;search options
         (setq sopts (gil::search-opts)); create the search options object
@@ -55,9 +55,11 @@
 (defmethod search-next-melody-finder (l rhythm)
     (let ((se (first l))
          (pitch* (second l))
+         (tstop (third l))
+         (sopts (fourth l))
          sol pitches)
         
-        ;reset the tstop timer before launching the search
+        (gil::time-stop-reset tstop);reset the tstop timer before launching the search
         (setq sol (gil::search-next se)); search the next solution
         (if (null sol) (error "There are no more solution or the solver couldn't find one in time."))
         (setq pitches (to-midicent (gil::g-values sol pitch*))); store the values of the solution
