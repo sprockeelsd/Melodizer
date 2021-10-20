@@ -25,16 +25,12 @@
 ; add constraints to signature later
 (defmethod voicemelodizer ( input rhythm &optional (key 60.0) (mode "major"))
     :initvals (list (make-instance 'voice) 60.0 0.0)
-    :indoc '("a voice object" 
-            "a rhythm tree"
-            "the key" 
-            "the mode"
+    :indoc '("a voice object" "a rhythm tree" "the key" "the mode"
             )
     :icon 921
     :doc "Creates the CSP"
-    (let ((sp (gil::new-space)); create the space
-        pitch intervals dfs)
-
+    (let ((sp (gil::new-space)); create the space; 
+        pitch intervals dfs tstop sopts)
 
         ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 84))
@@ -52,21 +48,25 @@
         (interval-between-adjacent-notes sp pitch intervals)
         
         ; branching
-        ; in order branching
-        ;variable strategy:
-        ;    0 : INT_VAR_SIZE_MIN()
-        ;    1 : INT_VAR_RND(r)
-        ;value strategy:
-        ;    0 : INT_VAL_MIN()
-        ;    1 : INT_VAL_RND(r)
         ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
         (gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
 
-        ; search engine
-        (setq se (gil::search-engine sp nil))
+        ;time stop
+        (setq tstop (gil::t-stop)); create the time stop object
+        (gil::time-stop-init tstop 5000); initialize it (time is expressed in ms)
 
+        ;search options
+        (setq sopts (gil::search-opts)); create the search options object
+        (gil::init-search-opts sopts); initialize it
+        (gil::set-n-threads sopts 2); set the number of threads to be used during the search (default is 1, 0 means as many as available)
+        (gil::set-time-stop sopts tstop); set the timestop object to stop the search if it takes too long
+
+        ; search engine
+        (setq se (gil::search-engine sp (gil::opts sopts)))
+
+        (print "CSP constructed")
         ; return
-        (list se pitch)
+        (list se pitch tstop sopts)
     )
 )
 
@@ -77,22 +77,24 @@
     :doc "
 Get the next solution for the csp described in the input musical-space.
 "
+    ;(print "1")
     (let ((se (first l))
          (pitch* (second l))
+         (tstop (third l))
+         (sopts (fourth l))
          sol pitches)
         
         ;Get the values of the solution
 
         (setq sol (gil::search-next se))
+        ;(print "2")
         (if (null sol) (error "No solution or no more solution."))
-        ;(print gil::g-values pitch*)
         (setq pitches (to-midicent (gil::g-values sol pitch*)))
         (print "pitches" )
         (print pitches)
 
         ;return a voice object
         (make-instance 'voice
-            ;:tree (mktree (list 1/4 1/4 1/4 1/4 1/4 1/4 1/4 1/4) (list 4 4))
             :tree rhythm
             :chords pitches
             :tempo 60

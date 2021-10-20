@@ -117,7 +117,6 @@
                           ; update the fields of the object to their new value
                           (setf (search-engine (object self)) (first init))
                           (setf (cspsol (object self)) (second init))
-                          (print "csp constructed")
                         )
                       )
                       ((string-equal (tool-mode (object self)) "Accompagnement-Finder"); not supported yet
