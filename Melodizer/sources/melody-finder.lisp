@@ -1,4 +1,4 @@
-(in-package :om)
+(in-package :mldz)
 
 ;;;====================
 ;;;= MELODIZER OBJECT =
@@ -51,41 +51,41 @@
 ;;; pop-up menus
 
     ;pop-up list to select the mode of the tool (melodizer, accompagnement finder, ...)
-    (om-make-dialog-item 
+    (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om-make-point 30 50) 
-      (om-make-point 200 20) 
+      (om::om-make-point 30 50) 
+      (om::om-make-point 200 20) 
       "Tool Mode selection"
       :range '("Melody-Finder" "Accompagnement-Finder" "Ornement")
       :di-action #'(lambda (m)
         ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
-        (setf (tool-mode (object self)) (nth (om-get-selected-item-index m) (om-get-item-list m))) ; set the tool-mode according to the choice of the user
+        (setf (tool-mode (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))) ; set the tool-mode according to the choice of the user
       )
     )
 
     ;pop-up list to select the key of the melody
-    (om-make-dialog-item 
+    (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om-make-point 30 80) 
-      (om-make-point 80 20) 
+      (om::om-make-point 30 80) 
+      (om::om-make-point 80 20) 
       "Key selection"
       :range '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")
-      :value (note-value-to-name (key (object self)))
+      :value (note-value-to-name (key (om::object self)))
       :di-action #'(lambda (m)
-        (setf (key (object self)) (name-to-note-value (nth (om-get-selected-item-index m) (om-get-item-list m)))) ; set the key according to the choice of the user
+        (setf (key (om::object self)) (name-to-note-value (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))) ; set the key according to the choice of the user
       )
     )
 
     ;pop-up list to select the mode of the melody
-    (om-make-dialog-item 
+    (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om-make-point 30 110) 
-      (om-make-point 80 20) 
+      (om::om-make-point 30 110) 
+      (om::om-make-point 80 20) 
       "Mode selection"
       :range '("major" "minor"); add pentatonic, chromatic, ... ?
-      :value (mode (object self))
+      :value (mode (om::object self))
       :di-action #'(lambda (m)
-        (setf (mode (object self)) (nth (om-get-selected-item-index m) (om-get-item-list m))) ; set the mode according to the choice of the user
+        (setf (mode (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))) ; set the mode according to the choice of the user
       )
     )
 
@@ -94,19 +94,19 @@
     ;temporary replacement to the representation of the solution, to have an idea of the interface
     (om::om-make-dialog-item
       'om::text-box
-      (om-make-point 250 100) 
-      (om-make-point 400 150) 
+      (om::om-make-point 250 100) 
+      (om::om-make-point 400 150) 
       "Display of the solution" 
-      :font *om-default-font1* 
+      :font om::*om-default-font1* 
     )
 
     ;text for the slider
     (om::om-make-dialog-item
       'om::text-box
-      (om-make-point 660 100) 
-      (om-make-point 200 20) 
+      (om::om-make-point 660 100) 
+      (om::om-make-point 200 20) 
       "Variety of the solutions" 
-      :font *om-default-font1* 
+      :font om::*om-default-font1* 
     )
 
 ;;; buttons
@@ -122,18 +122,18 @@
                     ;  (print (lmidic e))
                     ;)
                     (cond
-                      ((string-equal (tool-mode (object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
+                      ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                         (let init; list to take the result of the call to melody-finder
-                          (setq init (melody-finder (input-chords (object self)) (input-rhythm (object self)) (key (object self)) (mode (object self)))); get the search engine and the first solution of the CSP
+                          (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                           ; update the fields of the object to their new value
                           ; modify so we only store one thing, and then we can pass that as an argument to search-next
-                          (setf (result (object self)) init); store the result of the call to melody finder
+                          (setf (result (om::object self)) init); store the result of the call to melody finder
                         )
                       )
-                      ((string-equal (tool-mode (object self)) "Accompagnement-Finder"); not supported yet
+                      ((string-equal (tool-mode (om::object self)) "Accompagnement-Finder"); not supported yet
                         (print "This mode is not supported yet")
                       )
-                      ((string-equal (tool-mode (object self)) "Ornement"); not supported yet
+                      ((string-equal (tool-mode (om::object self)) "Ornement"); not supported yet
                         (print "This mode is not supported yet")
                       )
                     )
@@ -150,7 +150,7 @@
                     (print "Searching for the next solution")
                     (let sol 
                       ; modify this according to what is stated above
-                      (setf (solution (object self)) (search-next-melody-finder (result (object self)) (input-rhythm (object self))))
+                      (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (input-rhythm (om::object self))))
                     )
                   )
     )
@@ -191,7 +191,7 @@
       :increment 1
       :value 1
       :di-action #'(lambda (s)
-                    (print (om-slider-value s))
+                    (print (om::om-slider-value s))
                   )
     )
   ); end of add subviews

@@ -1,4 +1,4 @@
-(in-package :om)
+(in-package :mldz)
 
 ; MELODY-FINDER
 ; <input> is a list of lists with each list representing the midicent values of the chords on top of which the melody will be played

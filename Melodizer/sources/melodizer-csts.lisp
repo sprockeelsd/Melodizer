@@ -1,4 +1,4 @@
-(in-package :om)
+(in-package :mldz)
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ; SAMPLE CONSTRAINTS ;
@@ -74,7 +74,7 @@
         (setq i 0)
         (setq admissible-notes (list))
         ; add all notes over the key, then add all notes under the key
-        (while (<= note 127) :do
+        (om::while (<= note 127) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
             (if (>= i 7)
                 (setq i 0)
@@ -86,7 +86,7 @@
         (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
         (setq i 1)
 
-        (while (>= note 0) :do
+        (om::while (>= note 0) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list
             (if (>= i 7)
                 (setq i 0)

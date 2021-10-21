@@ -1,23 +1,45 @@
-(require-library "GiL")
+(in-package :om)
+
 (defvar *melodizer-sources-dir* nil)
 (setf *melodizer-sources-dir* (make-pathname :directory (append (pathname-directory *load-pathname*) '("sources"))))
 
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-utils" :type "lisp"))
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csp" :type "lisp"))
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csts" :type "lisp"))
-(compile&load (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melody-finder" :type "lisp"))
 
-(defvar *melodizer-pkg* (omng-make-new-package 'melodizer))
+(mapc 'compile&load (list
+                     (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "package" :type "lisp")
+                     (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-utils" :type "lisp")
+                     (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csp" :type "lisp")
+                     (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csts" :type "lisp")
+                     (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melody-finder" :type "lisp")
+                     ))
 
-(AddLispFun2Pack '(
-    melodizer
-    search-next
-    all-different-notes
-    )
-*melodizer-pkg*)
+;; (defvar *melodizer-pkg* (omng-make-new-package 'melodizer))
 
-;(AddClass2Pack my-object *melodizer-pkg*)
+;; (AddLispFun2Pack '(
+;;     melodizer
+;;     search-next
+;;     all-different-notes
+;;     )
+;; *melodizer-pkg*)
 
-(AddPackage2Pack *melodizer-pkg* *om-package-tree*)
+;; ;(AddClass2Pack my-object *melodizer-pkg*)
+
+;; (AddPackage2Pack *melodizer-pkg* *om-package-tree*)
+
+(fill-library '(("ALL" nil 
+                 (mldz::melodizer) 
+                 (mldz::melody-finder
+                 ; mldz::another-function
+                                 ) nil)
+
+
+
+
+                     ("UTILS" Nil Nil (mldz::get-voice
+                                       mldz::to-midicent
+                                       ) nil)
+
+
+))
+
 
 (print "Melodizer Loaded")

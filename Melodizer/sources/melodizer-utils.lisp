@@ -1,4 +1,4 @@
-(in-package :om)
+(in-package :mldz)
 
 ; converts a list of MIDI values to MIDIcent
 (defun to-midicent (l)
