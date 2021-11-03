@@ -14,7 +14,8 @@
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
-    (solution :accessor solution :initarg :solution :initform nil :documentation "The solution of the CSP in the form of a voice object.")
+    (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
+    (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of solutions saved by the user.")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -91,15 +92,6 @@
 
 ;;; text boxes (change that because for now they can be edited!)
 
-    ;temporary replacement to the representation of the solution, to have an idea of the interface
-    (om::om-make-dialog-item
-      'om::text-box
-      (om::om-make-point 250 100) 
-      (om::om-make-point 400 150) 
-      "Display of the solution" 
-      :font om::*om-default-font1* 
-    )
-
     ;text for the slider
     (om::om-make-dialog-item
       'om::text-box
@@ -114,13 +106,16 @@
     ; button to start or restart the search, not sure if I will keep it here
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 250 250) ; position (horizontal, vertical)
+      (om::om-make-point 350 50) ; position (horizontal, vertical)
       (om::om-make-point 80 20) ; size (horizontal, vertical)
       "Start"
       :di-action #'(lambda (b) 
                     ;(dolist (e (chords (input-chords (object self))))
                     ;  (print (lmidic e))
                     ;)
+                    ; reset the solutions
+                    (setf (solutions-list (om::object self)) '())
+                    (setf (solution (om::object self)) nil)
                     (cond
                       ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                         (let init; list to take the result of the call to melody-finder
@@ -137,13 +132,13 @@
                         (print "This mode is not supported yet")
                       )
                     )
-                  )
+        )
     )
 
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 330 250) ; position
+      (om::om-make-point 430 50) ; position
       (om::om-make-point 80 20) ; size
       "Next"
       :di-action #'(lambda (b)
@@ -152,18 +147,34 @@
                       ; modify this according to what is stated above
                       (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (input-rhythm (om::object self))))
                     )
-                  )
+      )
+    )
+
+    ; button to open the voice object of the solution, for now print the object
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 350 70); position
+      (om::om-make-point 160 80); size
+      "See solution"
+      :di-action #'(lambda (b)
+                      (print (solution (om::object self)))
+                      ; open the voice object
+      )  
     )
 
     ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 410 250) ; position
+      (om::om-make-point 350 150) ; position
       (om::om-make-point 120 20) ; size
-      "Save Solution"
-      :di-action #'(lambda (b)
-                    (print "TODO")
-                  )
+      "Keep Solution"
+      :di-action #'(lambda (b); there is a problem here, it doesn't work correctly
+                    (print (solutions-list (om::object self)))
+                    (if (null (solutions-list (om::object self)))
+                      (setf (solutions-list (om::object self)) (list (solution (om::object self))))
+                      (append (solutions-list (om::object self)) (list (solution (om::object self))))
+                    )
+      )
     )
 
 ;;; check-boxes
