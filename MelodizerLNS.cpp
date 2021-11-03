@@ -286,6 +286,17 @@ class MelodizerLNS : public Space {
         }
       }
     }
+    /*
+     Constraint method for BAB search
+    */
+    virtual void constrain(const Space& _b) {
+      const MelodizerLNS& b = static_cast<const MelodizerLNS&>(_b); 
+      vector<int> sol(0);
+      for(int i = 0; i < pitch.size(); ++i){
+        sol.push_back(b.pitch[i].val()); //keep the values of the solution
+        rel(*this, pitch[i], IRT_NQ, sol[i]);
+      }
+    }
  
     /*
      * next function to perform LNS 
@@ -317,12 +328,12 @@ class MelodizerLNS : public Space {
       getIths(key, major, 5, &sevenths);
       getIths(key, major, 6, &firsts);
 
-      restrainDomain();
+      //restrainDomain();
       inTonality(key, major);
-      noteOnChord();
-      interval();
+      //noteOnChord();
+      //interval();
       //distinct(*this, pitch);
-      dissonnanceResolution(key, major);
+      //dissonnanceResolution(key, major);
 
       // post branching
       Rnd r1(12U);
@@ -360,7 +371,7 @@ void printIntVector(vector<int> v){
 int main(int argc, char* argv[]) {
   //general test to see if constraints work together
   //chords passed as an argument, for now 
-  vector<int> chord1{55,60,64}; //CM
+/*   vector<int> chord1{55,60,64}; //CM
   vector<int> chord2{57,60,65}; //FM
   vector<int> chord3{59,62,67}; //GM
   vector<int> chord4{55,60,64}; //CM
@@ -371,24 +382,24 @@ int main(int argc, char* argv[]) {
 
   vector<int> inputDurations{8, 6, 2, //mesure 1
                           6, 2, 8};   //mesure 2
-  vector<int> inputStarts{0, 8, 14, 16, 22, 24};
+  vector<int> inputStarts{0, 8, 14, 16, 22, 24}; */
 
   //simple test to test if a single constraint works
-  //vector<int> chord1{55, 60, 64};
-  //vector<vector<int>> chordSeq{chord1};
-  //vector<int> chordDur{16};
-  //vector<int> chordStar{0};
+  vector<int> chord1{55, 60, 64};
+  vector<vector<int>> chordSeq{chord1};
+  vector<int> chordDur{16};
+  vector<int> chordStar{0};
 
-  //vector<int> inputDurations{8, 6, 2};
-  //vector<int> inputStarts{0, 8, 14};
+  vector<int> inputDurations{8, 6, 2};
+  vector<int> inputStarts{0, 8, 14};
 
   // create model and search engine
   MelodizerLNS* m = new MelodizerLNS(chordSeq, chordDur, chordStar, inputDurations, inputStarts, 60, true);
   Gecode::Search::Options opts;
-  opts.threads = 0;// use as many threads as possible
-  Gecode::Search::TimeStop maxTime(60000);
+  //opts.threads = 0;// use as many threads as possible
+  Gecode::Search::TimeStop maxTime(1);
   opts.stop = &maxTime;
-  DFS<MelodizerLNS> e(m, opts);
+  BAB<MelodizerLNS> e(m, opts);
   delete m;
   int nbSol = 0;
 
@@ -407,9 +418,9 @@ int main(int argc, char* argv[]) {
     maxTime.reset();// reset the max limit of time to search for a solution
   }
   //afficher les résultats
-  /*for(int i = 0; i < solutions.size(); ++i){// for each solution
+  for(int i = 0; i < solutions.size(); ++i){// for each solution
     printIntVector(solutions[i]);
-  }*/
+  }
   std::cout << "number of solutions : " << nbSol << "\n";
   return 0;
 }
