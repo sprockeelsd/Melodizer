@@ -9,7 +9,7 @@
   ;attributes
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "The input chords on top of which the melody will be played in the form of a voice object.")
     ; maybe allow the rhythm to be a voice object as well?
-    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform nil :documentation "The rhythm of the melody in the form of a rhythm tree. To make the rhythm tree, express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature.")
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation "The rhythm of the melody in the form of a rhythm tree. To make the rhythm tree, express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature.")
     (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C).")
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
@@ -119,7 +119,7 @@
                     (cond
                       ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                         (let init; list to take the result of the call to melody-finder
-                          (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
+                          (setq init (melody-finder (input-chords (om::object self)) (om::tree (input-rhythm (om::object self))) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                           ; update the fields of the object to their new value
                           ; modify so we only store one thing, and then we can pass that as an argument to search-next
                           (setf (result (om::object self)) init); store the result of the call to melody finder
@@ -145,7 +145,7 @@
                     (print "Searching for the next solution")
                     (let sol 
                       ; modify this according to what is stated above
-                      (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (input-rhythm (om::object self))))
+                      (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self)))))
                     )
       )
     )
