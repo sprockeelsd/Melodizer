@@ -9,6 +9,22 @@ int MINOR(1);
 int DIMINISHED(2);
 int AUGMENTED(3);
 
+void printIntVector(vector<int> v){
+  for(int i = 0; i < v.size(); ++i){
+    std::cout << v[i] << " ";
+  }
+  std::cout << std::endl;
+}
+
+void printIntVectorVector(vector<vector<int>> v){
+  for (int i = 0; i < v.size(); i++) {
+    for (auto it = v[i].begin(); it != v[i].end(); it++){
+      cout << *it << " ";
+    }
+    cout << endl;
+  }
+}
+
 class MelodizerLNS : public Space {
   protected:
     //Melody
@@ -286,25 +302,42 @@ class MelodizerLNS : public Space {
         }
       }
     }
+    
     /*
-     Constraint method for BAB search
+     Constraint to apply everytime a solution is found
+     <prev_sol> is the previous solution found by the solver
+     <min_variety> is the minimum number of variables that must take a value different from the one they had in the previous solution
+    */
+    void solutionVariety(vector<int> prev_sol, int min_variety){
+      std::cout << "Solution given to the SolutionVariety Constraint : ";
+      printIntVector(prev_sol);
+      IntVar z(*this, 0, 4-1); // create a variable with domain between 0 and nVariables-1
+      IntArgs p_sol(prev_sol); // cast from vector to IntArgs
+      count(*this, pitch, p_sol, IRT_EQ, z); // count the number of elements such that pitch[i] = prev_sol[i] and put it in z (pitch is the array of variables)
+      rel(*this, z, IRT_LQ, 4-min_variety); // constrain z to be smaller than or equal to the number of elements that are allowed to be similar (n - variety)
+      //std::cout << "domain of z between " << z.min() << " and " << z.max() << "\n";
+    }
+    
+    /*
+     Constrain method for BAB search
+     This is called everytime the solver finds a solution
     */
     virtual void constrain(const Space& _b) {
-      const MelodizerLNS& b = static_cast<const MelodizerLNS&>(_b); 
+      const MelodizerLNS& b = static_cast<const MelodizerLNS&>(_b); // cast le noeud de l'arbre de recherche du type space au type du problème
       vector<int> sol(0);
       for(int i = 0; i < pitch.size(); ++i){
-        sol.push_back(b.pitch[i].val()); //keep the values of the solution
-        rel(*this, pitch[i], IRT_NQ, sol[i]);
+        sol.push_back(b.pitch[i].val()); //keep the values of the solution in a vector
       }
+      static vector<vector<int>> solutions({});// keep a list of all the previous solutions
+      solutions.push_back(sol);
+      //std::cout << "current set of solutions \n";
+      //printIntVectorVector(solutions);
+      for(int i = 0; i < solutions.size(); ++i){
+        solutionVariety(solutions[i], 3);// post it for all the previously found solutions
+      }
+      //solutionVariety(sol, 2);// post the constraint
     }
- 
-    /*
-     * next function to perform LNS 
-    */
-    /* void next(const MelodizerLNS& b) { 
-      Rnd r(1U);
-      relax(*this, pitch, b.getPitch(), r, 0.2);// 0.7 = probability that the value is different
-    } */
+
     /*
       Constructor : 
       chords are given with the notes in ascending order
@@ -312,7 +345,7 @@ class MelodizerLNS : public Space {
       if the tonality is major then major is true, else false
     */
     MelodizerLNS(vector<vector<int>> chordSequence, vector<int> chordDurationSequence, vector<int> chordStartSequence, 
-                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,6, 21, 108), 
+                  vector<int> notesDurations, vector<int> notesStarts, int key, bool major) : pitch(*this,4, 1, 3), 
                   intervals(*this, 5, -12, 12), start(notesStarts), 
                   chords(chordSequence), chordStart(chordStartSequence), chordDuration(chordDurationSequence), 
                   n(notesStarts.size()) {  //pour l'instant, 2 mesures, 4 accords, 8 noires
@@ -329,7 +362,7 @@ class MelodizerLNS : public Space {
       getIths(key, major, 6, &firsts);
 
       //restrainDomain();
-      inTonality(key, major);
+      //inTonality(key, major);
       //noteOnChord();
       //interval();
       //distinct(*this, pitch);
@@ -338,7 +371,8 @@ class MelodizerLNS : public Space {
       // post branching
       Rnd r1(12U);
       Rnd r2(13U);
-      branch(*this, pitch, INT_VAR_RND(r1), INT_VAL_RND(r2));
+      //branch(*this, pitch, INT_VAR_RND(r1), INT_VAL_RND(r2));
+      branch(*this, pitch, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     }
     // search support
     MelodizerLNS(MelodizerLNS& s) : Space(s) {
@@ -358,13 +392,6 @@ double compareSol(vector<int> sol1, vector<int> sol2){
     }
   }
   return (same*1.0) / sol1.size();
-}
-
-void printIntVector(vector<int> v){
-  for(int i = 0; i < v.size(); ++i){
-    std::cout << v[i] << " ";
-  }
-  std::cout << std::endl;
 }
 
 // main function
@@ -390,8 +417,8 @@ int main(int argc, char* argv[]) {
   vector<int> chordDur{16};
   vector<int> chordStar{0};
 
-  vector<int> inputDurations{8, 6, 2};
-  vector<int> inputStarts{0, 8, 14};
+  vector<int> inputDurations{8, 8};
+  vector<int> inputStarts{0, 8, 12};
 
   // create model and search engine
   MelodizerLNS* m = new MelodizerLNS(chordSeq, chordDur, chordStar, inputDurations, inputStarts, 60, true);
@@ -418,6 +445,7 @@ int main(int argc, char* argv[]) {
     maxTime.reset();// reset the max limit of time to search for a solution
   }
   //afficher les résultats
+  std::cout << endl << "Solutions : " << endl;
   for(int i = 0; i < solutions.size(); ++i){// for each solution
     printIntVector(solutions[i]);
   }
