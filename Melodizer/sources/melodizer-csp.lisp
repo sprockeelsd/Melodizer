@@ -36,7 +36,7 @@
         ;search options
         (setq sopts (gil::search-opts)); create the search options object
         (gil::init-search-opts sopts); initialize it
-        (gil::set-n-threads sopts 0); set the number of threads to be used during the search (default is 1, 0 means as many as available)
+        (gil::set-n-threads sopts 1); set the number of threads to be used during the search (default is 1, 0 means as many as available)
         (gil::set-time-stop sopts tstop); set the timestop object to stop the search if it takes too long
 
         ; search engine
@@ -74,6 +74,11 @@
         )
     )
 )
+
+
+
+
+
 
 
 
