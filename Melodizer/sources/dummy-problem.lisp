@@ -47,7 +47,7 @@
         (gil::time-stop-reset tstop);reset the tstop timer before launching the search
         (setq sol (gil::search-next se)); search the next solution
         (if (null sol) 
-            (stopped-or-ended (gil::stopped se))
+            (stopped-or-ended-dummy (gil::stopped se))
             ;(print (gil::stopped se))
             ;; (if (gil::stopped se)
             ;;     (error "Search has been stopped")
@@ -61,7 +61,7 @@
     )
 )
 
-(defun stopped-or-ended (stopped)
+(defun stopped-or-ended-dummy (stopped)
     (if (= stopped 1)
         (error "Search has been stopped")
         (error "No more solutions")

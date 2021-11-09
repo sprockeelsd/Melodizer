@@ -5,11 +5,12 @@
 
 
 (mapc 'compile&load (list
-                     (make-pathname  :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "package" :type "lisp")
+                     (make-pathname :directory (append (pathname-directory *load-pathname*) (list "sources")) :name "package" :type "lisp")
                      (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-utils" :type "lisp")
                      (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csp" :type "lisp")
                      (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melodizer-csts" :type "lisp")
                      (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "melody-finder" :type "lisp")
+                     (make-pathname :directory (pathname-directory *melodizer-sources-dir*) :name "dummy-problem" :type "lisp")
                      ))
 
 ;; (defvar *melodizer-pkg* (omng-make-new-package 'melodizer))
@@ -25,6 +26,8 @@
 
 ;; (AddPackage2Pack *melodizer-pkg* *om-package-tree*)
 
+
+;; remplir à la fin
 (fill-library '(("ALL" nil 
                  (mldz::melodizer) 
                  (mldz::melody-finder
