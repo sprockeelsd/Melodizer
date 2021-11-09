@@ -17,6 +17,7 @@
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
     (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of solutions saved by the user.")
+    (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -98,11 +99,9 @@
       (om::om-make-point 320 20)
       "Solution selection"
       :range (solutions-list (om::object self))
-      ;:value "sol 1"
-      :di-action #'(lambda (m)
-        (print "trying to update the list in the pop-up menu")
-        ;(oa::om-set-selected-item-index (solutions-list (om::object self)))
-        ;(print (solutions-list (om::object self)))
+      ;:value todo
+      :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
+        (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
       )
     )
 
