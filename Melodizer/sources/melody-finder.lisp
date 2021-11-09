@@ -14,6 +14,7 @@
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
+    (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
     (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of solutions saved by the user.")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
@@ -96,27 +97,29 @@
       (om::om-make-point 350 130)
       (om::om-make-point 320 20)
       "Solution selection"
-      :range '("sol 1" "sol 2")
-      :value "sol 1"
+      :range (solutions-list (om::object self))
+      ;:value "sol 1"
       :di-action #'(lambda (m)
-        (print "TODO")
+        (print "trying to update the list in the pop-up menu")
+        ;(oa::om-set-selected-item-index (solutions-list (om::object self)))
+        ;(print (solutions-list (om::object self)))
       )
     )
 
 ;;; text boxes (change that because for now they can be edited!)
 
-    ;text for the slider
-    (om::om-make-dialog-item
-      'om::text-box
-      (om::om-make-point 660 50) 
-      (om::om-make-point 180 20) 
-      "Variety of the solutions" 
-      :font om::*om-default-font1* 
-    )
+    ;; ;text for the slider
+    ;; (om::om-make-dialog-item
+    ;;   'om::text-box
+    ;;   (om::om-make-point 660 50) 
+    ;;   (om::om-make-point 180 20) 
+    ;;   "Variety of the solutions" 
+    ;;   :font om::*om-default-font1* 
+    ;; )
 
 ;;; buttons
 
-    ; button to start or restart the search, not sure if I will keep it here
+    ; button to start or restart the search
     (om::om-make-dialog-item 
       'om::om-button
       (om::om-make-point 350 50) ; position (horizontal, vertical)
@@ -129,12 +132,13 @@
                     ; reset the solutions
                     (setf (solutions-list (om::object self)) '())
                     (setf (solution (om::object self)) nil)
+                    ; reset the boolean
+                    (setf (stop-search (om::object self)) nil)
                     (cond
                       ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                         (let init; list to take the result of the call to melody-finder
                           (setq init (melody-finder (input-chords (om::object self)) (om::tree (input-rhythm (om::object self))) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                           ; update the fields of the object to their new value
-                          ; modify so we only store one thing, and then we can pass that as an argument to search-next
                           (setf (result (om::object self)) init); store the result of the call to melody finder
                         )
                       )
@@ -156,10 +160,10 @@
       "Next"
       :di-action #'(lambda (b)
                     (print "Searching for the next solution")
-                    (let sol 
-                      ; modify this according to what is stated above
-                      (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self)))))
-                    )
+                    ;reset the boolean
+                    (setf (stop-search (om::object self)) nil)
+                    ;get the next solution  
+                    (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
       )
     )
 
@@ -170,7 +174,7 @@
       (om::om-make-point 100 20)
       "Stop"
       :di-action #'(lambda (b)
-        (print "TODO")
+        (setf (stop-search (om::object self)) t) ; set the boolean to true
       )
     )
 
@@ -192,25 +196,65 @@
       (om::om-make-point 510 90) ; position
       (om::om-make-point 160 20) ; size
       "Keep Solution"
-      :di-action #'(lambda (b); there is a problem here, it doesn't work correctly
-                    (print (solutions-list (om::object self)))
-                    (if (null (solutions-list (om::object self)))
-                      (setf (solutions-list (om::object self)) (list (solution (om::object self))))
-                      (append (solutions-list (om::object self)) (list (solution (om::object self))))
+      :di-action #'(lambda (b); seems to work now
+                    (if (typep (solution (om::object self)) 'null)
+                      (error "There is no solution to keep.")
                     )
+                    (print "before")
+                    (print (solutions-list (om::object self)))
+                    ;add the element to the list
+                    (if (typep (solutions-list (om::object self)) 'null); if it's the first solution
+                      (setf (solutions-list (om::object self)) (list (solution (om::object self)))); initialize the list
+                      (nconc (solutions-list (om::object self)) (list (solution (om::object self)))); add it to the end
+                    )
+                    (print "after")
+                    (print (solutions-list (om::object self)))       
       )
     )
 
 ;;; check-boxes
 
-    ;example of a checkbox
+    ;checkbox for constraint 1
     (om::om-make-dialog-item
       'om::om-check-box
-      (om::om-make-point 200 350) ; position
+      (om::om-make-point 30 230) ; position
       (om::om-make-point 20 20) ; size
-      "Test"
+      "Constraint 1"
       :di-action #'(lambda (c)
-                    (print "checked")
+                    (print "Constraint 1 checked")
+                  )
+    )
+
+    ;checkbox for constraint 2
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 30 270) ; position
+      (om::om-make-point 20 20) ; size
+      "Constraint 2"
+      :di-action #'(lambda (c)
+                    (print "Constraint 2 checked")
+                  )
+    )
+
+    ;checkbox for constraint 3
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 30 310) ; position
+      (om::om-make-point 20 20) ; size
+      "Constraint 3"
+      :di-action #'(lambda (c)
+                    (print "Constraint 3 checked")
+                  )
+    )
+
+    ;checkbox for constraint 4
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 150 230) ; position
+      (om::om-make-point 20 20) ; size
+      "Constraint 4"
+      :di-action #'(lambda (c)
+                    (print "Constraint 4 checked")
                   )
     )
 

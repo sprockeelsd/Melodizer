@@ -13,25 +13,26 @@
 
         ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (get-events-from-rtree rhythm) 60 84))
+        ;(setq pitch (gil::add-int-var-array sp 10000 1 10))
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
 
         ; then, post the constraints
         (in-tonality sp pitch key mode)
 
-        ;(precedence sp pitch 72 71)
+        (precedence sp pitch 72 71)
 
         (all-different-notes sp pitch)
 
         (interval-between-adjacent-notes sp pitch intervals)
         
         ; branching
-        ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
-        (gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
+        (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
+        ;(gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
 
         ;time stop
         (setq tstop (gil::t-stop)); create the time stop object
-        (gil::time-stop-init tstop 1000); initialize it (time is expressed in ms)
+        (gil::time-stop-init tstop 500); initialize it (time is expressed in ms)
 
         ;search options
         (setq sopts (gil::search-opts)); create the search options object
@@ -51,20 +52,29 @@
 ; SEARCH-NEXT-MELODY-FINDER
 ; <l> is a list containing in that order the search engine for the problem and the variables
 ; <rhythm> is the input rhythm as given by the user 
+; <melodizer-object> is a melodizer object
 ; this function finds the next solution of the CSP using the search engine given as an argument
-(defmethod search-next-melody-finder (l rhythm)
+(defmethod search-next-melody-finder (l rhythm melodizer-object)
     (let ((se (first l))
          (pitch* (second l))
          (tstop (third l))
          (sopts (fourth l))
+         (check t); for the while loop
          sol pitches)
         
-        (gil::time-stop-reset tstop);reset the tstop timer before launching the search
-        (setq sol (gil::search-next se)); search the next solution
-        (if (null sol) (error "There are no more solution or the solver couldn't find one in time."))
+        (om::while check :do
+            (gil::time-stop-reset tstop);reset the tstop timer before launching the search
+            (setq sol (gil::search-next se)); search the next solution
+            (if (null sol) 
+                (stopped-or-ended (gil::stopped se) (stop-search melodizer-object) tstop); check if there are solutions left and if the user wishes to continue searching
+                (setf check nil); we have found a solution so break the loop
+            )
+        )
+
         (setq pitches (to-midicent (gil::g-values sol pitch*))); store the values of the solution
         (print "pitches")
         (print pitches)
+        ;(print (stop-search melodizer-object))
 
         ;return a voice object that is the solution we just found
         (make-instance 'voice
@@ -76,7 +86,17 @@
 )
 
 
+(defun stopped-or-ended (stopped-se stop-user tstop)
+    (if (= stopped-se 0); if the search has not been stopped by the TimeStop object, there is no more solutions
+        (error "There are no more solutions.")
+    )
+    ;otherwise, check if the user wants to keep searching or not
+    (if stop-user
+        (error "The search has been stopped. Press next to continue the search.")
+        ;(gil::time-stop-reset tstop);reset the tstop timer to keep searching
+    )
 
+)
 
 
 
