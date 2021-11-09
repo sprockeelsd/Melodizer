@@ -67,8 +67,8 @@
     ;pop-up list to select the key of the melody
     (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om::om-make-point 30 80) 
-      (om::om-make-point 80 20) 
+      (om::om-make-point 30 90) 
+      (om::om-make-point 200 20) 
       "Key selection"
       :range '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")
       :value (note-value-to-name (key (om::object self)))
@@ -80,8 +80,8 @@
     ;pop-up list to select the mode of the melody
     (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om::om-make-point 30 110) 
-      (om::om-make-point 80 20) 
+      (om::om-make-point 30 130) 
+      (om::om-make-point 200 20) 
       "Mode selection"
       :range '("major" "minor"); add pentatonic, chromatic, ... ?
       :value (mode (om::object self))
@@ -90,13 +90,26 @@
       )
     )
 
+    ;pop-up list to select the desired solution
+    (om::om-make-dialog-item
+      'om::pop-up-menu
+      (om::om-make-point 350 130)
+      (om::om-make-point 320 20)
+      "Solution selection"
+      :range '("sol 1" "sol 2")
+      :value "sol 1"
+      :di-action #'(lambda (m)
+        (print "TODO")
+      )
+    )
+
 ;;; text boxes (change that because for now they can be edited!)
 
     ;text for the slider
     (om::om-make-dialog-item
       'om::text-box
-      (om::om-make-point 660 100) 
-      (om::om-make-point 200 20) 
+      (om::om-make-point 660 50) 
+      (om::om-make-point 180 20) 
       "Variety of the solutions" 
       :font om::*om-default-font1* 
     )
@@ -107,7 +120,7 @@
     (om::om-make-dialog-item 
       'om::om-button
       (om::om-make-point 350 50) ; position (horizontal, vertical)
-      (om::om-make-point 80 20) ; size (horizontal, vertical)
+      (om::om-make-point 100 20) ; size (horizontal, vertical)
       "Start"
       :di-action #'(lambda (b) 
                     ;(dolist (e (chords (input-chords (object self))))
@@ -138,8 +151,8 @@
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 430 50) ; position
-      (om::om-make-point 80 20) ; size
+      (om::om-make-point 460 50) ; position
+      (om::om-make-point 100 20) ; size
       "Next"
       :di-action #'(lambda (b)
                     (print "Searching for the next solution")
@@ -150,11 +163,22 @@
       )
     )
 
+    ; button to stop the search if the user wishes to
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 570 50)
+      (om::om-make-point 100 20)
+      "Stop"
+      :di-action #'(lambda (b)
+        (print "TODO")
+      )
+    )
+
     ; button to open the voice object of the solution, for now print the object
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 350 70); position
-      (om::om-make-point 160 80); size
+      (om::om-make-point 350 90); position
+      (om::om-make-point 160 20); size
       "See solution"
       :di-action #'(lambda (b)
                       (print (solution (om::object self)))
@@ -165,8 +189,8 @@
     ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 350 150) ; position
-      (om::om-make-point 120 20) ; size
+      (om::om-make-point 510 90) ; position
+      (om::om-make-point 160 20) ; size
       "Keep Solution"
       :di-action #'(lambda (b); there is a problem here, it doesn't work correctly
                     (print (solutions-list (om::object self)))
@@ -195,7 +219,7 @@
     ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
       'om::om-slider
-      (om::om-make-point 660 130) ; position
+      (om::om-make-point 30 170) ; position
       (om::om-make-point 200 20) ; size
       "Slider"
       :range '(1 100)
