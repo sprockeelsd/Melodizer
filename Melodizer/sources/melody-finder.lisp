@@ -55,7 +55,7 @@
   (om::om-add-subviews self
                       (om::om-make-dialog-item 
                         'om::om-pop-up-dialog-item 
-                        (om::om-make-point 350 130) 
+                        (om::om-make-point 550 130) 
                         (om::om-make-point 320 20) 
                         "list of solutions"
                         :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
@@ -137,9 +137,10 @@
 
     ;pop-up list to select the desired solution
     ;this is only for the start, as a new pop-up menu is created with every new solution
+    ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-solutions-list function
     (om::om-make-dialog-item
       'om::pop-up-menu
-      (om::om-make-point 350 130)
+      (om::om-make-point 550 130)
       (om::om-make-point 320 20)
       "Solution selection"
       :range (solutions-list (om::object self))
@@ -161,10 +162,42 @@
 
 ;;; buttons
 
+    ;button to edit the input chords
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 240 90)
+      (om::om-make-point 200 20)
+      "Edit input chords"
+      :di-action #'(lambda (b)
+        (om::openeditorframe ; open a voice window displaying the selected solution
+          (om::omNG-make-new-instance 
+            (input-chords (om::object self)); the last solution
+            "input chords" ; name of the window
+          )
+        )
+      )
+    )
+
+    ;button to edit the input chords
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 240 130)
+      (om::om-make-point 200 20)
+      "Edit melody rhythm"
+      :di-action #'(lambda (b)
+        (om::openeditorframe ; open a voice window displaying the selected solution
+          (om::omNG-make-new-instance 
+            (input-rhythm (om::object self)); the last solution
+            "input rhythm" ; name of the window
+          )
+        )
+      )
+    )
+
     ; button to start or restart the search
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 350 50) ; position (horizontal, vertical)
+      (om::om-make-point 550 50) ; position (horizontal, vertical)
       (om::om-make-point 100 20) ; size (horizontal, vertical)
       "Start"
       :di-action #'(lambda (b) 
@@ -201,7 +234,7 @@
     ; button to find the next solution
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 460 50) ; position
+      (om::om-make-point 660 50) ; position
       (om::om-make-point 100 20) ; size
       "Next"
       :di-action #'(lambda (b)
@@ -216,7 +249,7 @@
     ; button to stop the search if the user wishes to
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 570 50)
+      (om::om-make-point 770 50)
       (om::om-make-point 100 20)
       "Stop"
       :di-action #'(lambda (b)
@@ -227,11 +260,11 @@
     ; button to open the voice object of the solution, for now print the object
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 350 90); position
+      (om::om-make-point 550 90); position
       (om::om-make-point 160 20); size
       "See solution"
       :di-action #'(lambda (b)
-                      (print (solution (om::object self)))
+                      ;(print (solution (om::object self)))
                       (om::openeditorframe ; open a voice window displaying the selected solution
                         (om::omNG-make-new-instance 
                           (solution (om::object self)); the last solution
@@ -244,7 +277,7 @@
     ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 510 90) ; position
+      (om::om-make-point 710 90) ; position
       (om::om-make-point 160 20) ; size
       "Keep Solution"
       :di-action #'(lambda (b); seems to work now
