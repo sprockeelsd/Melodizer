@@ -50,16 +50,41 @@
   (make-my-interface self)
 )
 
+(defun solutions (self)
+  (om::om-add-subviews self
+                      (om::om-make-dialog-item 
+                        'om::om-pop-up-dialog-item 
+                        (om::om-make-point 350 130) 
+                        (om::om-make-point 320 20) 
+                        "list of solutions"
+                        :range (solutions-list (om::object self))
+                        ;:value (mode (object self)) 
+                        :di-action #'(lambda (m)
+                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+                                      (let ((indx (om::om-get-selected-item-index m)))
+                                        (om::openeditorframe
+                                          (om::omNG-make-new-instance 
+                                          (nth indx (solutions-list (om::object self)))
+                                          (format nil "sol: ~D" (1+ indx))))
+                                        )
+                                      )
+                      )
+  )
+)
+
 
 (defmethod make-my-interface ((self my-editor))
 
-  ;set background color, maybe change it later
+  ;;; background colour
+
+  ; maybe change it later
   (om::om-set-bg-color self om::*azulito*) ;;pour changer le bg color. om peut fabriquer sa propre couleur: (om-make-color r g b)
 
   (om::om-add-subviews 
     self
 
     ;;; title
+
     (om::om-make-dialog-item 'om::om-static-text (om::om-make-point 400 15) (om::om-make-point 120 20) "Melodizer"
                          :font om::*om-default-font3b*)
 
@@ -211,15 +236,20 @@
                     (if (typep (solution (om::object self)) 'null)
                       (error "There is no solution to keep.")
                     )
-                    (print "before")
-                    (print (solutions-list (om::object self)))
+                    ;(print "before")
+                    ;(print (solutions-list (om::object self)))
                     ;add the element to the list
                     (if (typep (solutions-list (om::object self)) 'null); if it's the first solution
                       (setf (solutions-list (om::object self)) (list (solution (om::object self)))); initialize the list
                       (nconc (solutions-list (om::object self)) (list (solution (om::object self)))); add it to the end
                     )
-                    (print "after")
-                    (print (solutions-list (om::object self)))       
+                    ;(print "after")
+                    ;(print (solutions-list (om::object self)))    
+                    (progn
+                      (solutions self)
+                      (oa::om-invalidate-view self)
+                      (print "updated solutions")
+                    )   
       )
     )
 
