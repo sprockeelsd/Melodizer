@@ -50,6 +50,7 @@
   (make-my-interface self)
 )
 
+; function to update the list of solutions in the pop-up menu without having to close and re-open the window
 (defun update-solutions-list (self)
   (om::om-add-subviews self
                       (om::om-make-dialog-item 
@@ -60,18 +61,17 @@
                         :range (solutions-list (om::object self))
                         ;:value (mode (object self)); change so it goes to the newest added solution? 
                         :di-action #'(lambda (m)
-                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))); set the output solution
                                       (let ((indx (om::om-get-selected-item-index m)))
-                                        (om::openeditorframe
+                                        (om::openeditorframe ; open a voice window displaying the selected solution
                                           (om::omNG-make-new-instance 
-                                          (nth indx (solutions-list (om::object self)))
-                                          (format nil "sol: ~D" (1+ indx))))
+                                          (nth indx (solutions-list (om::object self))); the selected voice object
+                                          (format nil "sol: ~D" (1+ indx)))); name of the window
                                         )
                                       )
                       )
   )
 )
-
 
 (defmethod make-my-interface ((self my-editor))
 
@@ -222,7 +222,12 @@
       "See solution"
       :di-action #'(lambda (b)
                       (print (solution (om::object self)))
-                      ; open the voice object
+                      (om::openeditorframe ; open a voice window displaying the selected solution
+                        (om::omNG-make-new-instance 
+                          (solution (om::object self)); the last solution
+                          "current solution" ; name of the window
+                        )
+                      )
       )  
     )
 
@@ -233,22 +238,18 @@
       (om::om-make-point 160 20) ; size
       "Keep Solution"
       :di-action #'(lambda (b); seems to work now
-                    (if (typep (solution (om::object self)) 'null)
+                    (if (typep (solution (om::object self)) 'null); if there is no solution to add
                       (error "There is no solution to keep.")
                     )
-                    ;(print "before")
-                    ;(print (solutions-list (om::object self)))
                     ;add the element to the list
                     (if (typep (solutions-list (om::object self)) 'null); if it's the first solution
                       (setf (solutions-list (om::object self)) (list (solution (om::object self)))); initialize the list
                       (nconc (solutions-list (om::object self)) (list (solution (om::object self)))); add it to the end
-                    )
-                    ;(print "after")
-                    ;(print (solutions-list (om::object self)))    
+                    )   
                     (progn
-                      (update-solutions-list self)
+                      (update-solutions-list self); update the pop-up menu with the list of the solutions selected by the user
                       (oa::om-invalidate-view self)
-                      (print "updated solutions")
+                      ;(print "updated solutions")
                     )   
       )
     )
