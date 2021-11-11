@@ -58,7 +58,7 @@
                         (om::om-make-point 350 130) 
                         (om::om-make-point 320 20) 
                         "list of solutions"
-                        :range (solutions-list (om::object self))
+                        :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
                         ;:value (mode (object self)); change so it goes to the newest added solution? 
                         :di-action #'(lambda (m)
                                       (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))); set the output solution
@@ -72,6 +72,12 @@
                       )
   )
 )
+
+;makes a list (name voice-instance):
+(defun make-data-sol (liste)
+  (loop for l in liste
+        for i from 1 to (length liste)
+        collect (list (format nil "sol~D: ~A"  i l) l)))
 
 (defmethod make-my-interface ((self my-editor))
 
