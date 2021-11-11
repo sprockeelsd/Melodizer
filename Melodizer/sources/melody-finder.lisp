@@ -50,7 +50,7 @@
   (make-my-interface self)
 )
 
-(defun solutions (self)
+(defun update-solutions-list (self)
   (om::om-add-subviews self
                       (om::om-make-dialog-item 
                         'om::om-pop-up-dialog-item 
@@ -58,7 +58,7 @@
                         (om::om-make-point 320 20) 
                         "list of solutions"
                         :range (solutions-list (om::object self))
-                        ;:value (mode (object self)) 
+                        ;:value (mode (object self)); change so it goes to the newest added solution? 
                         :di-action #'(lambda (m)
                                       (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
                                       (let ((indx (om::om-get-selected-item-index m)))
@@ -130,13 +130,13 @@
     )
 
     ;pop-up list to select the desired solution
+    ;this is only for the start, as a new pop-up menu is created with every new solution
     (om::om-make-dialog-item
       'om::pop-up-menu
       (om::om-make-point 350 130)
       (om::om-make-point 320 20)
       "Solution selection"
       :range (solutions-list (om::object self))
-      ;:value todo
       :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
         (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
       )
@@ -246,7 +246,7 @@
                     ;(print "after")
                     ;(print (solutions-list (om::object self)))    
                     (progn
-                      (solutions self)
+                      (update-solutions-list self)
                       (oa::om-invalidate-view self)
                       (print "updated solutions")
                     )   
