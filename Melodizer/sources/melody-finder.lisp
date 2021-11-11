@@ -94,6 +94,10 @@
     (om::om-make-dialog-item 'om::om-static-text (om::om-make-point 400 15) (om::om-make-point 120 20) "Melodizer"
                          :font om::*om-default-font3b*)
 
+;;;;;;;;;;;;;
+;;; input ;;;
+;;;;;;;;;;;;;
+
 ;;; pop-up menus
 
     ;pop-up list to select the mode of the tool (melodizer, accompagnement finder, ...)
@@ -135,31 +139,6 @@
       )
     )
 
-    ;pop-up list to select the desired solution
-    ;this is only for the start, as a new pop-up menu is created with every new solution
-    ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-solutions-list function
-    (om::om-make-dialog-item
-      'om::pop-up-menu
-      (om::om-make-point 550 130)
-      (om::om-make-point 320 20)
-      "Solution selection"
-      :range (solutions-list (om::object self))
-      :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
-        (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
-      )
-    )
-
-;;; text boxes (change that because for now they can be edited!)
-
-    ;; ;text for the slider
-    ;; (om::om-make-dialog-item
-    ;;   'om::text-box
-    ;;   (om::om-make-point 660 50) 
-    ;;   (om::om-make-point 180 20) 
-    ;;   "Variety of the solutions" 
-    ;;   :font om::*om-default-font1* 
-    ;; )
-
 ;;; buttons
 
     ;button to reset the input 
@@ -193,7 +172,7 @@
       )
     )
 
-    ;button to edit the input chords
+    ;button to edit the input rhythm
     (om::om-make-dialog-item
       'om::om-button
       (om::om-make-point 240 130)
@@ -209,7 +188,47 @@
       )
     )
 
-    ; button to start or restart the search
+;;; sliders
+
+    ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
+    (om::om-make-dialog-item
+      'om::om-slider
+      (om::om-make-point 30 170) ; position
+      (om::om-make-point 200 20) ; size
+      "Slider"
+      :range '(1 100)
+      :increment 1
+      :value 1
+      :di-action #'(lambda (s)
+                    (print (om::om-slider-value s))
+                  )
+    )
+
+
+
+;;;;;;;;;;;;;;
+;;; search ;;;
+;;;;;;;;;;;;;;
+
+;;; pop-up menus
+
+;pop-up list to select the desired solution
+    ;this is only for the start, as a new pop-up menu is created with every new solution
+    ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-solutions-list function
+    (om::om-make-dialog-item
+      'om::pop-up-menu
+      (om::om-make-point 550 130)
+      (om::om-make-point 320 20)
+      "Solution selection"
+      :range (solutions-list (om::object self))
+      :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
+        (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+      )
+    )
+
+;;; buttons
+
+; button to start or restart the search
     (om::om-make-dialog-item 
       'om::om-button
       (om::om-make-point 550 50) ; position (horizontal, vertical)
@@ -311,6 +330,9 @@
                     )   
       )
     )
+;;;;;;;;;;;;;;;;;;;
+;;; constraints ;;;
+;;;;;;;;;;;;;;;;;;;
 
 ;;; check-boxes
 
@@ -358,25 +380,21 @@
                   )
     )
 
-;;; sliders
 
-    ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
-    (om::om-make-dialog-item
-      'om::om-slider
-      (om::om-make-point 30 170) ; position
-      (om::om-make-point 200 20) ; size
-      "Slider"
-      :range '(1 100)
-      :increment 1
-      :value 1
-      :di-action #'(lambda (s)
-                    (print (om::om-slider-value s))
-                  )
-    )
+
+;;; text boxes (change that because for now they can be edited!)
+
+    ;; ;text for the slider
+    ;; (om::om-make-dialog-item
+    ;;   'om::text-box
+    ;;   (om::om-make-point 660 50) 
+    ;;   (om::om-make-point 180 20) 
+    ;;   "Variety of the solutions" 
+    ;;   :font om::*om-default-font1* 
+    ;; )
+
   ); end of add subviews
   ; return the editor:
   self
 )
-
-
 
