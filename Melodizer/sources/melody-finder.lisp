@@ -47,9 +47,21 @@
   
   ;;; do what needs to be done by default
   (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
-  
+  (make-my-interface self)
+)
+
+
+(defmethod make-my-interface ((self my-editor))
+
+  ;set background color, maybe change it later
+  (om::om-set-bg-color self om::*azulito*) ;;pour changer le bg color. om peut fabriquer sa propre couleur: (om-make-color r g b)
+
   (om::om-add-subviews 
     self
+
+    ;;; title
+    (om::om-make-dialog-item 'om::om-static-text (om::om-make-point 400 15) (om::om-make-point 120 20) "Melodizer"
+                         :font om::*om-default-font3b*)
 
 ;;; pop-up menus
 
