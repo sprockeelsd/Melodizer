@@ -162,6 +162,21 @@
 
 ;;; buttons
 
+    ;button to reset the input 
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 240 50)
+      (om::om-make-point 200 20)
+      "Reset input"
+      :di-action #'(lambda (b)
+        (setf (input-chords (om::object self)) (make-instance 'voice))
+        (setf (input-rhythm (om::object self)) (make-instance 'voice))
+        (setf (key (om::object self)) 60)
+        (setf (mode (om::object self)) "major")
+        (setf (tool-mode (om::object self)) "Melody-Finder") 
+      )
+    )
+
     ;button to edit the input chords
     (om::om-make-dialog-item
       'om::om-button
