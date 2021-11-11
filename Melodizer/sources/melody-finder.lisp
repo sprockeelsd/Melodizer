@@ -77,7 +77,7 @@
 (defun make-data-sol (liste)
   (loop for l in liste
         for i from 1 to (length liste)
-        collect (list (format nil "sol~D: ~A"  i l) l)))
+        collect (list (format nil "melody ~D: ~A"  i l) l)))
 
 (defmethod make-my-interface ((self my-editor))
 
@@ -174,6 +174,10 @@
                     ; reset the solutions
                     (setf (solutions-list (om::object self)) '())
                     (setf (solution (om::object self)) nil)
+                    (progn
+                      (update-solutions-list self); update the pop-up menu with the list of the solutions selected by the user
+                      (oa::om-invalidate-view self)
+                    )
                     ; reset the boolean
                     (setf (stop-search (om::object self)) nil)
                     (cond
