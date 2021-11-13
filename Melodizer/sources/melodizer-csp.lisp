@@ -12,7 +12,7 @@
         pitch intervals dfs tstop sopts)
 
         ;initialize the variables
-        (setq pitch (gil::add-int-var-array sp (n-pulses rhythm) 60 84))
+        (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 60 84))
         (print "n-pulses")
         (print (n-pulses rhythm))
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh

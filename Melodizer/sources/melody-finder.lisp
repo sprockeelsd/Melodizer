@@ -4,20 +4,19 @@
 ;;;= MELODIZER OBJECT =
 ;;;====================
 
-;change the input-rhythm to be a voice object where we don't care about the pitch instead of a rhythm tree
 (om::defclass! melodizer () 
   ;attributes
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "The input chords on top of which the melody will be played in the form of a voice object.")
-    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation "The rhythm of the melody in the form of a rhythm tree. To make the rhythm tree, express the notes with respect to a whole note (1/2 for half note, 1/4 for quarter note,... and the time signature.")
-    (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C).")
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation "The rhythm of the melody in the form of a voice object. ")
+    (key :accessor key :initarg :key :initform 60 :documentation "The key the melody is in (default : C).")
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
-    (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes")
+    (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes.")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
-    (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not")
+    (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
-    (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of solutions saved by the user.")
-    (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution")
+    (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of all the solutions saved by the user.")
+    (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -26,13 +25,13 @@
 )
 
 
-;;; OBJECT EDITOR 
-(defclass my-editor (om::editorview) ())
+; the editor for the object
+(defclass melodizer-editor (om::editorview) ())
 
 (defmethod om::class-has-editor-p ((self melodizer)) t)
-(defmethod om::get-editor-class ((self melodizer)) 'my-editor)
+(defmethod om::get-editor-class ((self melodizer)) 'melodizer-editor)
 
-(defmethod om::om-draw-contents ((view my-editor))
+(defmethod om::om-draw-contents ((view melodizer-editor))
   (let* ((object (om::object view)))
     (om::om-with-focused-view 
       view
@@ -42,7 +41,7 @@
 )
 
 ; To access the melodizer object, (object self)
-(defmethod initialize-instance ((self my-editor) &rest args)
+(defmethod initialize-instance ((self melodizer-editor) &rest args)
   ;;; do what needs to be done by default
   (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
   (make-my-interface self)
@@ -59,7 +58,7 @@
                         :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
                         ;:value (mode (object self)); change so it goes to the newest added solution? 
                         :di-action #'(lambda (m)
-                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))); set the output solution
+                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution
                                       (let ((indx (om::om-get-selected-item-index m)))
                                         (om::openeditorframe ; open a voice window displaying the selected solution
                                           (om::omNG-make-new-instance 
@@ -74,7 +73,7 @@
 )
 
 ; function to create the tool's interface
-(defmethod make-my-interface ((self my-editor))
+(defmethod make-my-interface ((self melodizer-editor))
   
   ;;;;;;;;;;;;;;;;;
   ;;; main view ;;;
@@ -291,7 +290,7 @@
             "Solution selection"
             :range (solutions-list (om::object self))
             :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
-              (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+              (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self))))
             )
           )
 
