@@ -41,6 +41,7 @@
 )
 
 ; To access the melodizer object, (object self)
+
 (defmethod initialize-instance ((self melodizer-editor) &rest args)
   ;;; do what needs to be done by default
   (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
@@ -50,25 +51,25 @@
 ; function to update the list of solutions in the pop-up menu without having to close and re-open the window
 (defun update-solutions-list (self my-panel)
   (om::om-add-subviews my-panel
-                      (om::om-make-dialog-item 
-                        'om::om-pop-up-dialog-item 
-                        (om::om-make-point 5 130) 
-                        (om::om-make-point 320 20) 
-                        "list of solutions"
-                        :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
-                        ;:value (mode (object self)); change so it goes to the newest added solution? 
-                        :di-action #'(lambda (m)
-                                      (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution
-                                      (let ((indx (om::om-get-selected-item-index m)))
-                                        (om::openeditorframe ; open a voice window displaying the selected solution
-                                          (om::omNG-make-new-instance 
-                                            (nth indx (solutions-list (om::object self))); the selected voice object
-                                            (format nil "melody ~D" (1+ indx)); name of the window
-                                          )
-                                        )
-                                      )
+    (om::om-make-dialog-item 
+      'om::om-pop-up-dialog-item 
+      (om::om-make-point 5 130) 
+      (om::om-make-point 320 20) 
+      "list of solutions"
+      :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
+      ;:value (mode (object self)); change so it goes to the newest added solution? 
+      :di-action #'(lambda (m)
+                    (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution to the currently selected solution
+                    (let ((indx (om::om-get-selected-item-index m)))
+                      (om::openeditorframe ; open the editor of the selected solution
+                        (om::omNG-make-new-instance 
+                          (nth indx (solutions-list (om::object self))); the selected voice object
+                          (format nil "melody ~D" (1+ indx)); name of the window
                         )
                       )
+                    )
+      )
+    )
   )
 )
 
@@ -104,21 +105,21 @@
       ;;; setting the different regions of the tool ;;;
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       
-      ; The coordinates here are coordinates in the global view
+      ; The coordinates here are coordinates in the main view
       (input-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with input
         :size (om::om-make-point 400 300)
         :position (om::om-make-point 5 30)
-        :bg-color om::*azulito*) ;change color
+        :bg-color om::*azulito*) 
       )
       (search-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with the search for solutions
         :size (om::om-make-point 400 300)
         :position (om::om-make-point 410 30)
-        :bg-color om::*azulito*); change color
+        :bg-color om::*azulito*)
       )
       (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
         :size (om::om-make-point 805 300)
         :position (om::om-make-point 5 335)
-        :bg-color om::*azulito*) ; change color
+        :bg-color om::*azulito*)
       )
 
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -185,9 +186,9 @@
             (om::om-make-point 200 20)
             "Edit input chords"
             :di-action #'(lambda (b)
-              (om::openeditorframe ; open a voice window displaying the selected solution
+              (om::openeditorframe ; open a voice window displaying the input chords
                 (om::omNG-make-new-instance 
-                  (input-chords (om::object self)); the last solution
+                  (input-chords (om::object self))
                   "input chords" ; name of the window
                 )
               )
@@ -201,9 +202,9 @@
             (om::om-make-point 200 20)
             "Edit melody rhythm"
             :di-action #'(lambda (b)
-              (om::openeditorframe ; open a voice window displaying the selected solution
+              (om::openeditorframe ; open a voice window displaying the input rhythm
                 (om::omNG-make-new-instance 
-                  (input-rhythm (om::object self)); the last solution
+                  (input-rhythm (om::object self))
                   "input rhythm" ; name of the window
                 )
               )
@@ -227,7 +228,7 @@
             "Slider"
             :range '(1 100)
             :increment 1
-            :value 1
+            :value (* 100 (/ (variety (om::object self)) (n-pulses (input-rhythm (om::object self)))))
             :di-action #'(lambda (s)
                           ; set the value of variety to  the value of the pointer times n-values / 100, arrondi vers le bas
                           (setf 
