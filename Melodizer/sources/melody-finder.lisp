@@ -230,10 +230,10 @@
             :increment 1
             :value (* 100 (/ (variety (om::object self)) (n-pulses (input-rhythm (om::object self)))))
             :di-action #'(lambda (s)
-                          ; set the value of variety to  the value of the pointer times n-values / 100, arrondi vers le bas
+                          ; set the value of variety to  the value of the pointer times n-values / 100, rounded down
                           (setf 
                             (variety (om::object self))
-                            (floor ;division avec arrondi vers le bas 
+                            (floor ;division rounding down
                               (*
                                 (om::om-slider-value s)
                                 (om::n-pulses (input-rhythm (om::object self)))
@@ -241,7 +241,7 @@
                               100
                             )
                           )
-                          (print (variety (om::object self)))
+                          ;(print (variety (om::object self)))
             )
           )
 
@@ -290,8 +290,8 @@
             (om::om-make-point 320 20)
             "Solution selection"
             :range (solutions-list (om::object self))
-            :di-action #'(lambda (m); change the representation so the name of the object is not displayed but something like "solution 2"
-              (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self))))
+            :di-action #'(lambda (m)
+              (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output to the selected solution
             )
           )
 
@@ -305,14 +305,14 @@
                           ;(dolist (e (chords (input-chords (object self))))
                           ;  (print (lmidic e))
                           ;)
-                          ; reset the solutions
+                          ; reset the solutions for the new search
                           (setf (solutions-list (om::object self)) '())
                           (setf (solution (om::object self)) nil)
                           (progn
                             (update-solutions-list self search-panel); update the pop-up menu with the list of the solutions selected by the user
                             (oa::om-invalidate-view self)
                           )
-                          ; reset the boolean
+                          ; reset the boolean that tells wether we want to stop the search or not
                           (setf (stop-search (om::object self)) nil)
                           (cond
                             ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
@@ -322,10 +322,10 @@
                                 (setf (result (om::object self)) init); store the result of the call to melody finder
                               )
                             )
-                            ((string-equal (tool-mode (om::object self)) "Accompagnement-Finder"); not supported yet
+                            ((string-equal (tool-mode (om::object self)) "Accompagnement-Finder")
                               (print "This mode is not supported yet")
                             )
-                            ((string-equal (tool-mode (om::object self)) "Ornement"); not supported yet
+                            ((string-equal (tool-mode (om::object self)) "Ornement")
                               (print "This mode is not supported yet")
                             )
                           )
@@ -340,7 +340,7 @@
             "Next"
             :di-action #'(lambda (b)
                           (print "Searching for the next solution")
-                          ;reset the boolean
+                          ;reset the boolean because we want to continue the search
                           (setf (stop-search (om::object self)) nil)
                           ;get the next solution  
                           (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
@@ -354,11 +354,11 @@
             (om::om-make-point 100 20)
             "Stop"
             :di-action #'(lambda (b)
-              (setf (stop-search (om::object self)) t) ; set the boolean to true
+              (setf (stop-search (om::object self)) t) ; set the boolean to true so when the timestop object tells the search engine it stopped, it can check and see the user stopped the search
             )
           )
 
-          ; button to open the voice object of the solution
+          ; button to open the voice object editor of the current solution
           (om::om-make-dialog-item
             'om::om-button
             (om::om-make-point 5 90); position
@@ -381,7 +381,7 @@
             (om::om-make-point 165 90) ; position
             (om::om-make-point 160 20) ; size
             "Keep Solution"
-            :di-action #'(lambda (b); seems to work now
+            :di-action #'(lambda (b)
                           (if (typep (solution (om::object self)) 'null); if there is no solution to add
                             (error "There is no solution to keep.")
                           )
