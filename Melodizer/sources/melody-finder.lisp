@@ -12,6 +12,7 @@
     (key :accessor key :initarg :key :initform 60 :documentation "The key of the melody is in (default : C).")
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
+    (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
@@ -80,11 +81,19 @@
   ;;;;;;;;;;;;;;;;;
 
   ; background colour
-  (om::om-set-bg-color self om::*azulito*) ;;pour changer le bg color. om peut fabriquer sa propre couleur: (om-make-color r g b)
+  (om::om-set-bg-color self om::*om-light-gray-color*) ;;pour changer le bg color. om peut fabriquer sa propre couleur: (om-make-color r g b)
 
   ; title
-  ;;     (om::om-make-dialog-item 'om::om-static-text (om::om-make-point 400 15) (om::om-make-point 120 20) "Melodizer"
-  ;;                         :font om::*om-default-font3b*)
+  (om::om-add-subviews
+    self
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 350 2) 
+      (om::om-make-point 120 20) 
+      "Melodizer"
+      :font om::*om-default-font3b*
+    )
+  )
 
   ;;;;;;;;;;;;;;;;;
   ;;; sub views ;;;
@@ -99,18 +108,18 @@
       ; The coordinates here are coordinates in the global view
       (input-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with input
         :size (om::om-make-point 400 300)
-        :position (om::om-make-point 2 2)
-        :bg-color om::*om-purple-color*) ;change color
+        :position (om::om-make-point 5 30)
+        :bg-color om::*azulito*) ;change color
       )
       (search-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with the search for solutions
         :size (om::om-make-point 400 300)
-        :position (om::om-make-point 404 2)
-        :bg-color om::*om-gray-color*); change color
+        :position (om::om-make-point 410 30)
+        :bg-color om::*azulito*); change color
       )
       (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
-        :size (om::om-make-point 802 300)
-        :position (om::om-make-point 2 304)
-        :bg-color om::*om-red-color*) ; change color
+        :size (om::om-make-point 805 300)
+        :position (om::om-make-point 5 335)
+        :bg-color om::*azulito*) ; change color
       )
 
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -217,11 +226,22 @@
             (om::om-make-point 5 135) ; position
             (om::om-make-point 200 20) ; size
             "Slider"
-            :range '(1 100); update the range so it is between 1 and the number of events in the input
+            :range '(1 100)
             :increment 1
             :value 1
             :di-action #'(lambda (s)
-                          (print (om::om-slider-value s))
+                          ; set the value of variety to  the value of the pointer times n-values / 100, arrondi vers le bas
+                          (setf 
+                            (variety (om::object self))
+                            (floor ;division avec arrondi vers le bas 
+                              (*
+                                (om::om-slider-value s)
+                                (om::n-pulses (input-rhythm (om::object self)))
+                              )
+                              100
+                            )
+                          )
+                          (print (variety (om::object self)))
             )
           )
 
@@ -237,6 +257,7 @@
               (setf (key (om::object self)) 60)
               (setf (mode (om::object self)) "major")
               (setf (tool-mode (om::object self)) "Melody-Finder") 
+              (setf (variety (om::object self)) 0)
             )
           )
         )
