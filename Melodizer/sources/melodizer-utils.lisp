@@ -6,24 +6,24 @@
     (cons (* 100 (first l)) (to-midicent (rest l)))))
 
 ; takes a rhythm tree as argument and returns the number of events in it (doesn't work with dotted notes for now)
-(defmethod get-events-from-rtree (rtree)
-    (let ((l (first (rest rtree))) ; get the first element of the list
-        (nb 0)); the number of events
-        (dolist (bar l); for each bar
-            (dolist (elem (second bar)); count each event in the bar
-                (if (typep elem 'list); if the element of the bar is a list
-                    (dolist (event (second elem))
-                        ;(print event)
-                        (setq nb (+ nb 1))
-                    )
-                    (setq nb (+ nb 1)); if it is just a number
-                )
-            )
-        )
-        ;(print nb)
-        nb
-    )
-)
+;; (defmethod get-events-from-rtree (rtree)
+;;     (let ((l (first (rest rtree))) ; get the first element of the list
+;;         (nb 0)); the number of events
+;;         (dolist (bar l); for each bar
+;;             (dolist (elem (second bar)); count each event in the bar
+;;                 (if (typep elem 'list); if the element of the bar is a list
+;;                     (dolist (event (second elem))
+;;                         ;(print event)
+;;                         (setq nb (+ nb 1))
+;;                     )
+;;                     (setq nb (+ nb 1)); if it is just a number
+;;                 )
+;;             )
+;;         )
+;;         ;(print nb)
+;;         nb
+;;     )
+;; )
 
 ;converts the Value of a note to its name
 (defmethod note-value-to-name (note)
@@ -60,6 +60,12 @@
         ((string-equal name "B") 71)
     )
 )
+
+;makes a list (name voice-instance) from a list of voices:
+(defun make-data-sol (liste)
+  (loop for l in liste
+        for i from 1 to (length liste)
+        collect (list (format nil "melody ~D: ~A"  i l) l)))
     
 
 ; taken from rhythm box (add link)
@@ -77,27 +83,8 @@
     )
 )
 
-(defun get-bars (tree)
-    "Get the bars of a tree (? bars)"
-    (cadr tree)
-)
 
-(defun get-signature (bar)
-    "Get the signature (N D) of a bar ((N D) ps)."
-    (car bar)
-)
-
-(defmethod get-N ((x voice))
-    "Get the N part of the signature of the tree of the input voice as if
-    it was a long single bar."
-    (apply '+ (mapcar #'(lambda(z) (first (get-signature z))) (get-bars (tree x))))
-)
-
-(defmethod get-D ((x voice))
-    "Get the D part of the signature of the tree of the input voice."
-    (second (get-signature (first (get-bars (tree x)))))
-)
-
+; this is not used but kept in case it is needed
 ; shuffles a list
 ; from https://gist.github.com/shortsightedsid/62d0ee21bfca53d9b69e
 (defun list-shuffler (input-list &optional accumulator)

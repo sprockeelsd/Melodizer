@@ -31,6 +31,7 @@
 (fill-library '(("ALL" nil 
                  (mldz::melodizer) 
                  (mldz::melody-finder
+                 mldz::get-events-from-rtree
                  ; mldz::another-function
                                  ) nil)
 

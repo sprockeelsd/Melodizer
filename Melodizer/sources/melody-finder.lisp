@@ -73,12 +73,6 @@
   )
 )
 
-;makes a list (name voice-instance):
-(defun make-data-sol (liste)
-  (loop for l in liste
-        for i from 1 to (length liste)
-        collect (list (format nil "melody ~D: ~A"  i l) l)))
-
 (defmethod make-my-interface ((self my-editor))
 
   ;;; background colour
