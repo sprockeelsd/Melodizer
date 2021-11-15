@@ -50,11 +50,6 @@
     )
 )
 
-; PRECEDENCE test
-(defun precedence(sp notes val1 val2)
-    (gil::g-precede sp notes val1 val2)
-)
-
 
 ; IN TONALITY constraint WORKS
 ; <sp> is the space
@@ -99,6 +94,65 @@
             (gil::g-dom sp (nth j notes) admissible-notes)
         )
     )
+)
+
+; NOTE-ON-CHORDS constraint
+; <sp> is the space
+; <notes> is the variable array on which the constraint is executed
+; <input-rhythm> is the voice object of the rhythm for the melody we want to find
+; <chords> is the voice object of the chords
+; Ensures that the notes played at the same time as a chord respect rules DEVELOP
+(defun note-on-chord (sp notes input-rhythm chords)
+    (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
+            (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
+            (variable-counter 0); counter to keep track of which note we are currently looking at
+            (local-counter 0)); counter to keep track of how many notes we went through so we can remove them from the list as we don't need to go through them again
+        (dolist (c chords-starting-times); go through the chords starting times
+            (print "starting time of the chord")
+            (print c)
+            (setf variable-counter 0) ;  reset the counter
+            (dolist (m melody-starting-times);go through the input-rhythm starting times
+                ;(print "starting time of the melody")
+                ;(print m)
+                (cond 
+                    ((< m c) 
+                        (print variable-counter)
+                        (print "smaller") 
+                        (setf variable-counter (+ variable-counter 1))
+                    ) ; if the note is played before the chord, simply increment the counter for variables and the local counter for notes we went through this iteration
+                    ((= m c) 
+                        (apply-constraint) 
+                        (print "apply constraint on variable ") 
+                        (print variable-counter)
+                        (setf variable-counter (+ variable-counter 1)) (return )
+                    ); if they are played at the same time, post the constraint on that specific variable, increase the counter to start at the next note then break the loop
+                    ((> m c) 
+                        (print "too far") 
+                        (return ) 
+                    ); if it is bigger, break the loop and go to the next chord
+                )
+            )
+        )
+    )
+
+)
+
+(defun apply-constraint ()
+    
+)
+
+
+
+
+
+
+
+
+
+
+; PRECEDENCE test
+(defun precedence(sp notes val1 val2)
+    (gil::g-precede sp notes val1 val2)
 )
 
 ; old version

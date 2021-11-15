@@ -5,25 +5,14 @@
   (if (null l) nil
     (cons (* 100 (first l)) (to-midicent (rest l)))))
 
-; takes a rhythm tree as argument and returns the number of events in it (doesn't work with dotted notes for now)
-;; (defmethod get-events-from-rtree (rtree)
-;;     (let ((l (first (rest rtree))) ; get the first element of the list
-;;         (nb 0)); the number of events
-;;         (dolist (bar l); for each bar
-;;             (dolist (elem (second bar)); count each event in the bar
-;;                 (if (typep elem 'list); if the element of the bar is a list
-;;                     (dolist (event (second elem))
-;;                         ;(print event)
-;;                         (setq nb (+ nb 1))
-;;                     )
-;;                     (setq nb (+ nb 1)); if it is just a number
-;;                 )
-;;             )
-;;         )
-;;         ;(print nb)
-;;         nb
-;;     )
-;; )
+;function to get the starting times (in seconds) of the notes
+; from karim haddad (OM)
+(defmethod voice-onsets ((self voice))
+  "on passe de voice a chord-seq juste pour avoir les onsets"
+    (let ((obj (om::objfromobjs self (make-instance 'om::chord-seq))))
+        (butlast (om::lonset obj))
+    )
+)
 
 ;converts the Value of a note to its name
 (defmethod note-value-to-name (note)
@@ -96,3 +85,24 @@
 		 (nth (random (length input-list)) input-list))
 	(list-shuffler (cdr input-list) 
 				 (append accumulator (list (car input-list)))))))
+
+
+; takes a rhythm tree as argument and returns the number of events in it (doesn't work with dotted notes for now)
+;; (defmethod get-events-from-rtree (rtree)
+;;     (let ((l (first (rest rtree))) ; get the first element of the list
+;;         (nb 0)); the number of events
+;;         (dolist (bar l); for each bar
+;;             (dolist (elem (second bar)); count each event in the bar
+;;                 (if (typep elem 'list); if the element of the bar is a list
+;;                     (dolist (event (second elem))
+;;                         ;(print event)
+;;                         (setq nb (+ nb 1))
+;;                     )
+;;                     (setq nb (+ nb 1)); if it is just a number
+;;                 )
+;;             )
+;;         )
+;;         ;(print nb)
+;;         nb
+;;     )
+;; )

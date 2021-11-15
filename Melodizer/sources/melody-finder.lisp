@@ -317,7 +317,7 @@
                           (cond
                             ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                               (let init; list to take the result of the call to melody-finder
-                                (setq init (melody-finder (input-chords (om::object self)) (om::tree (input-rhythm (om::object self))) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
+                                (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                                 ; update the fields of the object to their new value
                                 (setf (result (om::object self)) init); store the result of the call to melody finder
                               )
