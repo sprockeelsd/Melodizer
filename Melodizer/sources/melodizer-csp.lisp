@@ -13,19 +13,18 @@
 
         ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 60 84))
-        (print "n-pulses")
-        (print (n-pulses rhythm))
+        ;(setq pitch (gil::add-int-var-array sp 10000 1 10)) ; to test if we can stop during the search
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
 
         ; then, post the constraints
-        (in-tonality sp pitch key mode)
+        ;(in-tonality sp pitch key mode)
 
-        (precedence sp pitch 72 71)
+        ;(precedence sp pitch 72 71)
 
-        (all-different-notes sp pitch)
+        ;(all-different-notes sp pitch)
 
-        (interval-between-adjacent-notes sp pitch intervals)
+        ;(interval-between-adjacent-notes sp pitch intervals)
         
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)

@@ -343,7 +343,15 @@
                           ;reset the boolean because we want to continue the search
                           (setf (stop-search (om::object self)) nil)
                           ;get the next solution  
-                          (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
+                          (mp:process-run-function ; start a new thread for the execution of the next method
+                            "next thread" ; name of the thread, not necessary but useful for debugging
+                            nil ; process initialization keywords, not needed here
+                            (lambda () ; function to call
+                              (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
+                            )
+                            ; arguments if necessary
+                          )
+                          ;(setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
             )
           )
 
