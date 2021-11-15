@@ -104,9 +104,8 @@
 ; Ensures that the notes played at the same time as a chord respect rules DEVELOP
 (defun note-on-chord (sp notes input-rhythm chords)
     (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
-            (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
-            (variable-counter 0); counter to keep track of which note we are currently looking at
-            (local-counter 0)); counter to keep track of how many notes we went through so we can remove them from the list as we don't need to go through them again
+        (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
+        (variable-counter 0)); counter to keep track of which note we are currently looking at
         (dolist (c chords-starting-times); go through the chords starting times
             (print "starting time of the chord")
             (print c)
@@ -115,30 +114,31 @@
                 ;(print "starting time of the melody")
                 ;(print m)
                 (cond 
-                    ((< m c) 
+                    ((< m c) ; if the note is played before the chord, simply increment the counter for variables
                         (print variable-counter)
-                        (print "smaller") 
+                        (print "smaller")
                         (setf variable-counter (+ variable-counter 1))
-                    ) ; if the note is played before the chord, simply increment the counter for variables and the local counter for notes we went through this iteration
-                    ((= m c) 
-                        (apply-constraint) 
+                    )
+                    ((= m c) ; if they are played at the same time, post the constraint on that specific variable
+                        (apply-constraint-noc notes variable-counter c) 
                         (print "apply constraint on variable ") 
                         (print variable-counter)
-                        (setf variable-counter (+ variable-counter 1)) (return )
-                    ); if they are played at the same time, post the constraint on that specific variable, increase the counter to start at the next note then break the loop
-                    ((> m c) 
+                        (return )
+                    )
+                    ((> m c) ; if it is bigger, break the loop and go to the next chord
                         (print "too far") 
                         (return ) 
-                    ); if it is bigger, break the loop and go to the next chord
+                    )
                 )
             )
         )
     )
-
 )
 
-(defun apply-constraint ()
-    
+
+(defun apply-constraint-noc (notes variable-id chord)
+    ; get the set of notes that can be played on that chord (see c++ code)
+    ;restrain the domain of pitch[variable-id] to that
 )
 
 
