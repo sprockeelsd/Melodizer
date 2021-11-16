@@ -109,8 +109,8 @@
         (dolist (c chords-starting-times); go through the chords starting times
             (print "starting time of the chord")
             (print c)
-            (setf variable-counter 0) ;  reset the counter
-            (dolist (m melody-starting-times);go through the input-rhythm starting times
+            ;(setf variable-counter 0) ;  reset the counter
+            (dolist (m (subseq melody-starting-times variable-counter));go through the input-rhythm starting times
                 ;(print "starting time of the melody")
                 ;(print m)
                 (cond 
@@ -123,6 +123,7 @@
                         (apply-constraint-noc notes variable-counter c) 
                         (print "apply constraint on variable ") 
                         (print variable-counter)
+                        (setf variable-counter (+ variable-counter 1))
                         (return )
                     )
                     ((> m c) ; if it is bigger, break the loop and go to the next chord
