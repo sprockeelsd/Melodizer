@@ -2,8 +2,19 @@
 
 ; converts a list of MIDI values to MIDIcent
 (defun to-midicent (l)
-  (if (null l) nil
-    (cons (* 100 (first l)) (to-midicent (rest l)))))
+    (if (null l) 
+        nil
+        (cons (* 100 (first l)) (to-midicent (rest l)))
+    )
+)
+
+; convert from MIDIcent to MIDI
+(defun to-midi (l)
+    (if (null l) 
+        nil
+        (cons (/ (first l) 100) (to-midi (rest l)))
+    )
+)
 
 ;function to get the starting times (in seconds) of the notes
 ; from karim haddad (OM)
@@ -11,6 +22,88 @@
   "on passe de voice a chord-seq juste pour avoir les onsets"
     (let ((obj (om::objfromobjs self (make-instance 'om::chord-seq))))
         (butlast (om::lonset obj))
+    )
+)
+
+; function to get all of a given note (e.g. C)
+(defun get-all-notes (note)
+    (let ((acc '()) (backup note))
+        (print backup)
+        (om::while (<= note 127) :do
+            (setq acc (cons note acc)); add it to the list
+            (incf note 12)
+        )
+        (setf note (- backup 12))
+        (om::while (>= note 0) :do
+            (setq acc (cons note acc)); add it to the list
+            (decf note 12)
+        )
+        acc
+    )
+)
+
+; function to get all notes playable on top of a given chord CHECK WHAT NOTES CAN BE PLAYED FOR OTHER CASES THAN M/m
+(defun get-admissible-notes (chords mode)
+    (let ((return-list '()))
+        (cond
+            ((string-equal mode "major"); on top of a major chord, you can play either of the notes from the chord though the preferred order is 1-5-3
+                (setf return-list (reduce #'cons
+                    (get-all-notes (first chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+                (setf return-list (reduce #'cons
+                    (get-all-notes (second chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+                (setf return-list (reduce #'cons
+                    (get-all-notes (third chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+            )
+            ((string-equal mode "minor"); on top of a minor chord, you can play either of the notes from the chord though the preferred order is 1-5-3
+                (setf return-list (reduce #'cons
+                    (get-all-notes (first chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+                (setf return-list (reduce #'cons
+                    (get-all-notes (second chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+                (setf return-list (reduce #'cons
+                    (get-all-notes (third chords))
+                    :initial-value return-list
+                    :from-end t
+                ))
+            )
+            ((string-equal mode "diminished")
+
+            )
+        )
+    )
+    
+)
+
+; function to get the mode of the chord (major, minor, diminished,...) and the inversion (0 = classical form, 1 = first inversion, 2 = second inversion)
+(defun get-mode-and-inversion (intervals)
+    (let ((major-intervals (list (list 4 3) (list 3 5) (list 5 4))); possible intervals in midicent for major chords
+        (minor-intervals (list (list 3 4) (list 4 5) (list 5 3))) ; possible intervals in midicent for minor chords
+        (diminished-intervals (list (list 3 3) (list 3 6) (list 6 3))))
+        (cond 
+            ((position intervals major-intervals :test #'equal); if the chord is major
+                (list "major" (position intervals major-intervals :test #'equal))
+            )
+            ((position intervals minor-intervals :test #'equal); if the chord is minor
+                (list "minor" (position intervals minor-intervals :test #'equal))
+            )
+            ((position intervals diminished-intervals :test #'equal); if the chord is diminished
+                (list "diminished" (position intervals diminished-intervals :test #'equal))
+            )
+        )
     )
 )
 
@@ -104,5 +197,21 @@
 ;;         )
 ;;         ;(print nb)
 ;;         nb
+;;     )
+;; )
+
+;; ; function to get the mode of a chord from the intervals between the notes
+;; (defun get-mode (intervals)
+;;     (let ((first (first intervals))
+;;         (second (second intervals)))
+;;         (cond
+;;             ((or (and (eq first 400) (eq second 300)) (and (eq first 300) (eq second 500)) (and (eq first 500) (eq second 400)))
+;;                 "major"
+;;             ) ; if intervals = (4,3) or (3,5) or (5,4) this is a major chord
+;;             ((or (and (eq first 300) (eq second 400)) (and (eq first 400) (eq second 500)) (and (eq first 500) (eq second 300)))
+;;                 "minor"
+;;             ) ; if intervals = (3,4) or (4,5) or (5,3) this is a minor chord
+;;             ; add other types of chords (diminished, augmented, ...)
+;;         )
 ;;     )
 ;; )

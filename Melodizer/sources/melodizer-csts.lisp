@@ -28,11 +28,12 @@
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; <intervals> is a list of IntVars representing the intervals between successive notes from the notes argument
 ; Ensures that the interval between two adjacent notes is valid
-; The interval must be everything up to an octave except for a tritone, a major seven or a minor seven
+; The interval must be everything up to a minor sixth (it can be an octave) except for a tritone, a major seven or a minor seven
 ; ;(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12) admissible intervals
+; new version (-1 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 12)
 ; IMPROVEMENT IDEA : PRIORITIZE SMALLER INTERVALS
 (defun interval-between-adjacent-notes (sp notes intervals)
-    (let ((valid-intervals '(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12)))
+    (let ((valid-intervals '(-1 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 12)))
         (dolist (interval intervals);restrain the interval domains to acceptable values 
             (gil::g-dom sp interval valid-intervals)
         )
@@ -105,41 +106,61 @@
 (defun note-on-chord (sp notes input-rhythm chords)
     (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
         (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
+        (chord-counter 0); counter to know which chord we are currently looking at
         (variable-counter 0)); counter to keep track of which note we are currently looking at
         (dolist (c chords-starting-times); go through the chords starting times
-            (print "starting time of the chord")
-            (print c)
+            ;(print "starting time of the chord")
+            ;(print c)
             ;(setf variable-counter 0) ;  reset the counter
             (dolist (m (subseq melody-starting-times variable-counter));go through the input-rhythm starting times
                 ;(print "starting time of the melody")
                 ;(print m)
                 (cond 
                     ((< m c) ; if the note is played before the chord, simply increment the counter for variables
-                        (print variable-counter)
-                        (print "smaller")
+                        ;(print variable-counter)
+                        ;(print "smaller")
                         (setf variable-counter (+ variable-counter 1))
                     )
                     ((= m c) ; if they are played at the same time, post the constraint on that specific variable
-                        (apply-constraint-noc notes variable-counter c) 
-                        (print "apply constraint on variable ") 
-                        (print variable-counter)
+                        (apply-constraint-noc sp notes variable-counter chord-counter chords) 
+                        ;(print "apply constraint on variable ") 
+                        ;(print variable-counter)
                         (setf variable-counter (+ variable-counter 1))
                         (return )
                     )
                     ((> m c) ; if it is bigger, break the loop and go to the next chord
-                        (print "too far") 
+                        ;(print "too far") 
                         (return ) 
                     )
                 )
             )
+            (setf chord-counter (+ 1 chord-counter))
         )
     )
 )
 
 
-(defun apply-constraint-noc (notes variable-id chord)
+(defun apply-constraint-noc (sp notes variable-id chord-id input-chords)
     ; get the set of notes that can be played on that chord (see c++ code)
     ;restrain the domain of pitch[variable-id] to that
+    (let ((chord-pitch (to-midi (om::lmidic (nth chord-id (om::chords input-chords))))); get the values of the notes of the chord
+            intervals mode inversion admissible-notes)
+        (sort chord-pitch #'<) ; sort the note values in increasing order
+        (setf intervals (list 
+            (- (second chord-pitch) (first chord-pitch)) 
+            (- (third chord-pitch) (second chord-pitch)))); get the intervals in semitones between the different notes of the chord
+        ; change that so there is only one function call
+        (setf mode (first (get-mode-and-inversion intervals))); get the mode of the chord from the intervals between the notes
+        (setf inversion (second (get-mode-and-inversion intervals))); get the inversion of the chord
+        ;get the notes playable on that chord
+        (setf admissible-notes (get-admissible-notes chord-pitch mode))
+        (print chord-pitch)
+        (print intervals)
+        (print mode)
+        (print inversion)
+        (print admissible-notes)
+        (gil::g-dom sp (nth variable-id notes) admissible-notes); post the constraint that the domain of that variable is one of the admissible notes
+    )
 )
 
 

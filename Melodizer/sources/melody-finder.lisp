@@ -348,10 +348,15 @@
                             nil ; process initialization keywords, not needed here
                             (lambda () ; function to call
                               (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
+                              (om::openeditorframe ; open a voice window displaying the solution
+                                (om::omNG-make-new-instance 
+                                (solution (om::object self)); the new solution
+                                "current solution" ; name of the window
+                                )
+                              )
                             )
                             ; arguments if necessary
                           )
-                          ;(setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
             )
           )
 
