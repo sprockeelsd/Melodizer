@@ -354,6 +354,7 @@
                             nil ; process initialization keywords, not needed here
                             (lambda () ; function to call
                               (setf (solution (om::object self)) (search-next-melody-finder (result (om::object self)) (om::tree (input-rhythm (om::object self))) (om::object self)))
+                              (setf (om::tempo (solution (om::object self))) (om::tempo (input-rhythm (om::object self)))); set the tempo of the new voice object to be the same as the input
                               (om::openeditorframe ; open a voice window displaying the solution
                                 (om::omNG-make-new-instance 
                                 (solution (om::object self)); the new solution

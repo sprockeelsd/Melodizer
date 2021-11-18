@@ -58,38 +58,10 @@
 ; <key> is the key 
 ; <mode> is the mode
 ; Ensures that the notes are in the tonality specified by the user(e.g. C major)
+; TODO ADD OTHER MODES (NATURAL MINOR, ... )
 (defun in-tonality (sp notes key mode)
-    (let (scale note admissible-notes i)
-        ; set the scale to major or minor
-        (if (string-equal mode "major") ; maybe add a security so if the user types something wrong it doesn't set the mode to minor by default
-            (setq scale (list 2 2 1 2 2 2 1)); major
-            (setq scale (list 2 1 2 2 1 2 2)); minor
-        )
-        ; then, create a list and add the notes in it
-        (setq note key)
-        (setq i 0)
-        (setq admissible-notes (list))
-        ; add all notes over the key, then add all notes under the key
-        (om::while (<= note 127) :do
-            (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
-            (if (>= i 7)
-                (setq i 0)
-            )
-            (incf note (nth i scale)); note = note + scale[i mod 6]
-            (incf i 1); i++
-        )
-        (setq note key)
-        (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
-        (setq i 1)
-
-        (om::while (>= note 0) :do
-            (setq admissible-notes (cons note admissible-notes)); add it to the list
-            (if (>= i 7)
-                (setq i 0)
-            )
-            (decf note (nth (- 6 i) scale)); note = note - scale[6-i mod 6]
-            (incf i 1); i++
-        )
+    (let (admissible-notes)
+        (setf admissible-notes (notes-from-tonality key mode))
         ; set the domain of each variable
         (loop :for j :from 0 :below (length notes) :do
             (gil::g-dom sp (nth j notes) admissible-notes)
@@ -109,27 +81,17 @@
         (chord-counter 0); counter to know which chord we are currently looking at
         (variable-counter 0)); counter to keep track of which note we are currently looking at
         (dolist (c chords-starting-times); go through the chords starting times
-            ;(print "starting time of the chord")
-            ;(print c)
-            ;(setf variable-counter 0) ;  reset the counter
             (dolist (m (subseq melody-starting-times variable-counter));go through the input-rhythm starting times
-                ;(print "starting time of the melody")
-                ;(print m)
                 (cond 
                     ((< m c) ; if the note is played before the chord, simply increment the counter for variables
-                        ;(print variable-counter)
-                        ;(print "smaller")
                         (setf variable-counter (+ variable-counter 1))
                     )
                     ((= m c) ; if they are played at the same time, post the constraint on that specific variable
                         (apply-constraint-noc sp notes variable-counter chord-counter chords) 
-                        ;(print "apply constraint on variable ") 
-                        ;(print variable-counter)
                         (setf variable-counter (+ variable-counter 1))
                         (return )
                     )
                     ((> m c) ; if it is bigger, break the loop and go to the next chord
-                        ;(print "too far") 
                         (return ) 
                     )
                 )
@@ -139,10 +101,8 @@
     )
 )
 
-
+; get the set of notes that can be played on that chord (see c++ code) and restrain the domain of pitch[variable-id] to that
 (defun apply-constraint-noc (sp notes variable-id chord-id input-chords)
-    ; get the set of notes that can be played on that chord (see c++ code)
-    ;restrain the domain of pitch[variable-id] to that
     (let ((chord-pitch (to-midi (om::lmidic (nth chord-id (om::chords input-chords))))); get the values of the notes of the chord
             intervals mode inversion admissible-notes)
         (sort chord-pitch #'<) ; sort the note values in increasing order
@@ -154,11 +114,6 @@
         (setf inversion (second (get-mode-and-inversion intervals))); get the inversion of the chord
         ;get the notes playable on that chord
         (setf admissible-notes (get-admissible-notes chord-pitch mode))
-        (print chord-pitch)
-        (print intervals)
-        (print mode)
-        (print inversion)
-        (print admissible-notes)
         (gil::g-dom sp (nth variable-id notes) admissible-notes); post the constraint that the domain of that variable is one of the admissible notes
     )
 )
