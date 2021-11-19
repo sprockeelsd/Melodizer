@@ -25,41 +25,6 @@
     )
 )
 
-(defun notes-from-tonality (key mode)
-    (let (admissible-notes note scale)
-        (if (string-equal mode "major") ; maybe add a security so if the user types something wrong it doesn't set the mode to minor by default
-            (setq scale (list 2 2 1 2 2 2 1)); major
-            (setq scale (list 2 1 2 2 1 2 2)); minor
-        )
-        ; then, create a list and add the notes in it
-        (setq note key)
-        (setq i 0)
-        (setq admissible-notes (list))
-        ; add all notes over the key, then add all notes under the key
-        (om::while (<= note 127) :do
-            (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
-            (if (>= i 7)
-                (setq i 0)            
-            )
-            (incf note (nth i scale)); note = note + scale[i mod 6]
-            (incf i 1); i++
-        )
-        (setq note key)
-        (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
-        (setq i 1)
-
-        (om::while (>= note 0) :do
-            (setq admissible-notes (cons note admissible-notes)); add it to the list
-            (if (>= i 7)
-                (setq i 0)
-            )
-            (decf note (nth (- 6 i) scale)); note = note - scale[6-i mod 6]
-            (incf i 1); i++
-        )
-        admissible-notes
-    )
-)
-
 ; function to get all of a given note (e.g. C)
 (defun get-all-notes (note)
     (let ((acc '()) (backup note))
@@ -115,11 +80,10 @@
                 ))
             )
             ((string-equal mode "diminished")
-
+            
             )
         )
-    )
-    
+    )   
 )
 
 ; function to get the mode of the chord (major, minor, diminished,...) and the inversion (0 = classical form, 1 = first inversion, 2 = second inversion)

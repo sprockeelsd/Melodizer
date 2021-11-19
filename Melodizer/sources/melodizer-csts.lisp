@@ -51,21 +51,107 @@
     )
 )
 
-
 ; IN TONALITY constraint WORKS
 ; <sp> is the space
 ; <notes> is the variable array on which the constraint is executed
 ; <key> is the key 
 ; <mode> is the mode
 ; Ensures that the notes are in the tonality specified by the user(e.g. C major)
-; TODO ADD OTHER MODES (NATURAL MINOR, ... )
 (defun in-tonality (sp notes key mode)
     (let (admissible-notes)
-        (setf admissible-notes (notes-from-tonality key mode))
-        ; set the domain of each variable
+        (setf admissible-notes (notes-from-tonality key mode)); call the function to get the list of notes in that tonality
+        ; set the domain of each variable to the set of notes from the tonality
         (loop :for j :from 0 :below (length notes) :do
             (gil::g-dom sp (nth j notes) admissible-notes)
         )
+    )
+)
+
+; returns the set of notes that are in the tonality specified by the arguments
+; TODO add other modes (natural minor, melodic minor, ...)
+(defun notes-from-tonality (key mode)
+    (let (admissible-notes note scale i)
+        (if (string-equal mode "major")
+            (setq scale (list 2 2 1 2 2 2 1)); major
+            (setq scale (list 2 1 2 2 1 2 2)); minor
+        )
+        ; then, create a list and add the notes in it
+        (setq note key)
+        (setq i 0)
+        (setq admissible-notes (list))
+        ; add all notes over the key, then add all notes under the key
+        (om::while (<= note 127) :do
+            (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
+            (if (>= i 7)
+                (setq i 0)            
+            )
+            (incf note (nth i scale)); note = note + scale[i mod 6]
+            (incf i 1); i++
+        )
+        (setq note key)
+        (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
+        (setq i 1)
+
+        (om::while (>= note 0) :do
+            (setq admissible-notes (cons note admissible-notes)); add it to the list
+            (if (>= i 7)
+                (setq i 0)
+            )
+            (decf note (nth (- 6 i) scale)); note = note - scale[6-i mod 6]
+            (incf i 1); i++
+        )
+        admissible-notes
+    )
+)
+
+; MELODIC-INTERVAL-CHORD constraint
+; <sp> is the space
+; <notes> is the variable array on which the constraint is executed
+; <input-rhythm> is the voice object of the rhythm for the melody we want to find
+; <chords> is the voice object of the chords
+; enforces that the melodic interval for the melody in the context of a given chord is a maximum of an octave
+(defun melodic-interval-chord (sp notes input-rhythm chords)
+    (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
+        (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
+        (chord-counter 0); counter to know which chord we are currently looking at
+        (variable-counter 0); counter to keep track of which note we are currently looking at
+        (local-starting-note-melody 0); counter to keep track of which variable is the start of the melody over the given chord
+        (starting-time-next-chord 0))
+        (dolist (c chords-starting-times); go through the chords starting times
+            (setf starting-time-next-chord (nth (+ 1 chord-counter) chords-starting-times)); get the starting time of the next chord
+            (setf local-starting-note-melody variable-counter); keep a track of the first note in the context of this chord
+            (dolist (m (subseq melody-starting-times variable-counter)); go through all the notes that we haven't seen yet
+                (cond 
+                    ((typep starting-time-next-chord 'null); if we are looking at the last chord
+                        (mic-constraint sp notes local-starting-note-melody (- (length melody-starting-times) 1)); post the constraint on all remaining notes
+                        (return )
+                    )
+                    ((< m starting-time-next-chord); if the note is in the context of this chord
+                        (incf variable-counter 1); simply increment the counter for the melody
+                    )
+                    ((>= m starting-time-next-chord); the note is not in the context of this chord
+                        ; post the constraint on the corresponding notes
+                        (mic-constraint sp notes local-starting-note-melody (- variable-counter 1))
+                        (return )
+                    )
+                )
+            )
+            (setf chord-counter (+ 1 chord-counter))
+        )
+    )
+)
+
+; post the constraint that max(pitch[starting-note],..., pitch[ending-note]) - min(pitch[starting-note],..., pitch[ending-note]) <= 12 (an octave)
+(defun mic-constraint (sp notes starting-note ending-note)
+    (let (notes-array max-min-array)
+        (setf notes-array (gil::add-int-var-array sp (+ (- ending-note starting-note) 1) 0 127)); create an array to represent all the notes played with that chord
+        (setf max-min-array (gil::add-int-var-array sp 2 0 127)); create a table where the first value is the max and the second is the min
+        (loop :for j :from 0 :below (+ (- ending-note starting-note) 1) :do ;for each element of note-array, make it equal to the note it represents
+            (gil::g-rel sp (nth j notes-array) gil::IRT_EQ (nth (+ starting-note j) notes)); notes-array[j] = notes[j + starting-notes]
+        )
+        (gil::g-lmax sp (first max-min-array) notes-array); max-val = max(notes-array)
+        (gil::g-lmin sp (second max-min-array) notes-array); min-val = min(notes-array)
+        (gil::g-linear sp '(1 -1) max-min-array gil::IRT_LQ 12); max(notes-array) - min(notes-array) <= 12
     )
 )
 
