@@ -1,10 +1,9 @@
 (in-package :mldz)
 
-;;;;;;;;;;;;;;;;;;;;;;
-; SAMPLE CONSTRAINTS ;
-;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ALL-DIFFERENT-NOTES constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; ALL-DIFFERENT-NOTES constraint WORKS
 ; <sp> is the space
 ; <notes> is a list of IntVars
 ; ensures that all the notes are different in terms of strict value, not in terms of notes
@@ -13,7 +12,10 @@
     (gil::g-distinct sp notes)
 )
 
-; DISSONNANCE RESOLUTION constraint TODO + develop comments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; DISSONNANCE RESOLUTION constraint ; TODO + develop comments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
 ; if it is a seventh note, it is followed by the fundamental that is above it (+1 if major, +2 if minor)
 ; if it is a fourth note, it is followed by either of the fundamentals around it (+7 or -5)
@@ -23,7 +25,10 @@
     ) |#
 )
 
-; INTERVAL-BETWEEN-ADJACENT-NOTES constraint WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; INTERVAL-BETWEEN-ADJACENT-NOTES constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; <intervals> is a list of IntVars representing the intervals between successive notes from the notes argument
@@ -51,7 +56,10 @@
     )
 )
 
-; IN TONALITY constraint WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; IN TONALITY constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; <sp> is the space
 ; <notes> is the variable array on which the constraint is executed
 ; <key> is the key 
@@ -104,13 +112,16 @@
     )
 )
 
-; MELODIC-INTERVAL-CHORD constraint
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; HARMONIC-INTERVAL-CHORD constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; <sp> is the space
 ; <notes> is the variable array on which the constraint is executed
 ; <input-rhythm> is the voice object of the rhythm for the melody we want to find
 ; <chords> is the voice object of the chords
 ; enforces that the melodic interval for the melody in the context of a given chord is a maximum of an octave
-(defun melodic-interval-chord (sp notes input-rhythm chords)
+(defun harmonic-interval-chord (sp notes input-rhythm chords)
     (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
         (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords
         (chord-counter 0); counter to know which chord we are currently looking at
@@ -123,7 +134,7 @@
             (dolist (m (subseq melody-starting-times variable-counter)); go through all the notes that we haven't seen yet
                 (cond 
                     ((typep starting-time-next-chord 'null); if we are looking at the last chord
-                        (mic-constraint sp notes local-starting-note-melody (- (length melody-starting-times) 1)); post the constraint on all remaining notes
+                        (hic-constraint sp notes local-starting-note-melody (- (length melody-starting-times) 1)); post the constraint on all remaining notes
                         (return )
                     )
                     ((< m starting-time-next-chord); if the note is in the context of this chord
@@ -131,7 +142,7 @@
                     )
                     ((>= m starting-time-next-chord); the note is not in the context of this chord
                         ; post the constraint on the corresponding notes
-                        (mic-constraint sp notes local-starting-note-melody (- variable-counter 1))
+                        (hic-constraint sp notes local-starting-note-melody (- variable-counter 1))
                         (return )
                     )
                 )
@@ -142,7 +153,7 @@
 )
 
 ; post the constraint that max(pitch[starting-note],..., pitch[ending-note]) - min(pitch[starting-note],..., pitch[ending-note]) <= 12 (an octave)
-(defun mic-constraint (sp notes starting-note ending-note)
+(defun hic-constraint (sp notes starting-note ending-note)
     (let (notes-array max-min-array)
         (setf notes-array (gil::add-int-var-array sp (+ (- ending-note starting-note) 1) 0 127)); create an array to represent all the notes played with that chord
         (setf max-min-array (gil::add-int-var-array sp 2 0 127)); create a table where the first value is the max and the second is the min
@@ -155,7 +166,10 @@
     )
 )
 
-; NOTE-ON-CHORDS constraint
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; NOTE-ON-CHORDS constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; <sp> is the space
 ; <notes> is the variable array on which the constraint is executed
 ; <input-rhythm> is the voice object of the rhythm for the melody we want to find

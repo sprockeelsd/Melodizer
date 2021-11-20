@@ -28,7 +28,7 @@
 
         (note-on-chord sp pitch rhythm input)
 
-        (melodic-interval-chord sp pitch rhythm input)
+        (harmonic-interval-chord sp pitch rhythm input)
         
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
