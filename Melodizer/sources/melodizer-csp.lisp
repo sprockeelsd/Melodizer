@@ -13,7 +13,7 @@
         pitch intervals dfs tstop sopts)
 
         ;initialize the variables
-        (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 60 84))
+        (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 60 127))
         ;(setq pitch (gil::add-int-var-array sp 20000 1 10)) ; to test if we can stop during the search
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
@@ -58,9 +58,14 @@
     )
 )
 
+;posts the optional constraints specified in the list
+; TODO CHANGE LATER SO THE FUNCTION CAN BE CALLED FROM THE STRING IN THE LIST AND NOT WITH A SERIES OF IF STATEMENTS
 (defun post-optional-constraints (optional-constraints sp notes)
-    (if (find "all-different" optional-constraints :test #'equal)
+    (if (find "all-different-notes" optional-constraints :test #'equal)
         (all-different-notes sp notes)
+    )
+    (if (find "strictly-increasing-pitch" optional-constraints :test #'equal)
+        (strictly-increasing-pitch sp notes)
     )
 )
 
@@ -76,7 +81,7 @@
          (sopts (fourth l))
          (check t); for the while loop
          sol pitches)
-        
+
         (om::while check :do
             (gil::time-stop-reset tstop);reset the tstop timer before launching the search
             (setq sol (gil::search-next se)); search the next solution
@@ -100,7 +105,7 @@
     )
 )
 
-
+; determines if the search has been stopped by the solver because there are no more solutions or if the user has stopped the search
 (defun stopped-or-ended (stopped-se stop-user tstop)
     (if (= stopped-se 0); if the search has not been stopped by the TimeStop object, there is no more solutions
         (error "There are no more solutions.")
@@ -108,9 +113,7 @@
     ;otherwise, check if the user wants to keep searching or not
     (if stop-user
         (error "The search has been stopped. Press next to continue the search.")
-        ;(gil::time-stop-reset tstop);reset the tstop timer to keep searching
     )
-
 )
 
 

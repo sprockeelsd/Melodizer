@@ -5,12 +5,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
-; <notes> is a list of IntVars
+; <notes> is a list of IntVars representing the pitch of the notes
 ; ensures that all the notes are different in terms of strict value, not in terms of notes
 ; (e.g. 60 and 72 can be values taken by two variables simultaneously even though they both represent a C)
 (defun all-different-notes (sp notes)
     (gil::g-distinct sp notes)
 )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; MELODY DIRECTION constraints ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
+; posts the constraint that the pitch[i] < pitch[i+1]
+(defun strictly-increasing-pitch (sp notes) ; WORKS
+    (gil::g-rel sp notes gil::IRT_LE nil) ; nil = v2
+)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; DISSONNANCE RESOLUTION constraint ; TODO + develop comments

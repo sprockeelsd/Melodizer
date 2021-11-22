@@ -124,7 +124,7 @@
         :bg-color om::*azulito*)
       )
       (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
-        :size (om::om-make-point 805 300)
+        :size (om::om-make-point 805 400)
         :position (om::om-make-point 5 335)
         :bg-color om::*azulito*)
       )
@@ -425,7 +425,63 @@
       ;;; creating the constraints panel ;;;
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+      (check-box-list (list))
+
       ; coordinates here are local to constraint-panel
+
+      ;;; subview for the pitch orientation (climbing, going down, ...)
+
+      (pitch-orientation
+        (om::om-make-view
+          'om::om-view
+          :size (om::om-make-point 300 300)
+          :position (om::om-make-point 500 50)
+          :bg-color (om::om-make-color 0.48 0.4 0.93)
+        )
+      )
+
+      (pitch-orientation-panel 
+        (om::om-add-subviews
+          pitch-orientation
+
+          ;title
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 100 2) 
+            (om::om-make-point 200 20) 
+            "Pitch orientation"
+            :font om::*om-default-font1b*
+          )
+
+          ;checkbox for strictly-increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 40) ; position
+            (om::om-make-point 20 20) ; size
+            "Strictly increasing pitch"
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "strictly-increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for strictly-increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 40) 
+            (om::om-make-point 200 20) 
+            "Strictly increasing pitch"
+            :font om::*om-default-font1*
+          )
+
+        )
+      )
+
+      ;;; rest of the constraint panel
+
       (elements-constraints-panel
         (om::om-add-subviews
           constraints-panel
@@ -439,7 +495,7 @@
             :font om::*om-default-font1b*
           )
 
-          ;checkbox for constraint 1
+          ;checkbox for all-different constraint
           (om::om-make-dialog-item
             'om::om-check-box
             (om::om-make-point 10 50) ; position
@@ -447,17 +503,14 @@
             "All different notes"
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
-                            (push "all-different" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "all-different" (optional-constraints (om::object self)) :test #'equal))
+                            (push "all-different-notes" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "all-different-notes" (optional-constraints (om::object self)) :test #'equal))
                           )
-                          ;(print (optional-constraints (om::object self)))
-                          ;(print (remove "all-different" (optional-constraints (om::object self)) :test #'equal))
-                          ;(setf (first (optional-constraints (om::object self))) (om::om-checked-p c))
                           (print (optional-constraints (om::object self)))
             )
           )
 
-          ; name for constraint 1
+          ; name for all-different constraint
           (om::om-make-dialog-item 
             'om::om-static-text 
             (om::om-make-point 30 50) 
@@ -518,6 +571,11 @@
       input-panel
       search-panel
       constraints-panel
+    )
+
+    (om::om-add-subviews 
+      constraints-panel
+      pitch-orientation
     )
   )
   ; return the editor
