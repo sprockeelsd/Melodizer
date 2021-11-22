@@ -174,7 +174,8 @@
 ; <notes> is the variable array on which the constraint is executed
 ; <input-rhythm> is the voice object of the rhythm for the melody we want to find
 ; <chords> is the voice object of the chords
-; Ensures that the notes played at the same time as a chord respect rules DEVELOP
+; Ensures that the notes played at the same time as a chord respect rules 
+; TODO ADD SEVENTH CHORDS, AUGMENTED, DIMINISHED,...
 (defun note-on-chord (sp notes input-rhythm chords)
     (let ((melody-starting-times (voice-onsets input-rhythm)); get the starting time of each of the notes of the melody
         (chords-starting-times (voice-onsets chords)); get the starting time of each of the notes of the chords

@@ -12,6 +12,7 @@
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
     (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes.")
+    (optional-constraints :accessor optional-constraints :initarg :optional-constraints :initform (list) :documentation "a list of booleans telling if the optional constraint should be added to the problem")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
@@ -323,7 +324,7 @@
                           (cond
                             ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                               (let init; list to take the result of the call to melody-finder
-                                (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
+                                (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (optional-constraints (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                                 ; update the fields of the object to their new value
                                 (setf (result (om::object self)) init); store the result of the call to melody finder
                               )
@@ -443,10 +444,17 @@
             'om::om-check-box
             (om::om-make-point 10 50) ; position
             (om::om-make-point 20 20) ; size
-            "Constraint 1"
+            "All different notes"
             :di-action #'(lambda (c)
-                          (print "Constraint 1 checked")
-                        )
+                          (if (om::om-checked-p c)
+                            (push "all-different" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "all-different" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          ;(print (optional-constraints (om::object self)))
+                          ;(print (remove "all-different" (optional-constraints (om::object self)) :test #'equal))
+                          ;(setf (first (optional-constraints (om::object self))) (om::om-checked-p c))
+                          (print (optional-constraints (om::object self)))
+            )
           )
 
           ; name for constraint 1
@@ -454,7 +462,7 @@
             'om::om-static-text 
             (om::om-make-point 30 50) 
             (om::om-make-point 200 20) 
-            "Constraint 1"
+            "All different notes"
             :font om::*om-default-font1*
           )
 

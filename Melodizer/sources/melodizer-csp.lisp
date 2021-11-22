@@ -3,11 +3,12 @@
 ; MELODY-FINDER
 ; <input> is a voice object with the chords on top of which the melody will be played
 ; <rhythm> the rhythm of the melody to be found in the form of a voice object
+; <optional-constraints> is a list of optional constraint names that have to be applied to the problem
 ; <key> is the key in which the melody is
 ; <mode> is the mode of the tonality (major, minor)
 ; This function creates the CSP by creating the space and the variables, posting the constraints and the branching, specifying
 ; the search options and creating the search engine. 
-(defmethod melody-finder (input rhythm &optional (key 60.0) (mode "major"))
+(defmethod melody-finder (input rhythm optional-constraints &optional (key 60.0) (mode "major"))
     (let ((sp (gil::new-space)); create the space; 
         pitch intervals dfs tstop sopts)
 
@@ -18,17 +19,20 @@
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
 
         ; then, post the constraints
+
+        ; mandatory constraints
         (in-tonality sp pitch key mode)
 
         ;(precedence sp pitch 72 71)
-
-        (all-different-notes sp pitch)
 
         (interval-between-adjacent-notes sp pitch intervals)
 
         (note-on-chord sp pitch rhythm input)
 
         (harmonic-interval-chord sp pitch rhythm input)
+
+        ; optional constraints
+        (post-optional-constraints optional-constraints sp pitch)
         
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
@@ -51,6 +55,12 @@
         (print "CSP constructed")
         ; return
         (list se pitch tstop sopts)
+    )
+)
+
+(defun post-optional-constraints (optional-constraints sp notes)
+    (if (find "all-different" optional-constraints :test #'equal)
+        (all-different-notes sp notes)
     )
 )
 
