@@ -37,6 +37,13 @@
     (gil::g-rel sp notes gil::IRT_GR nil) ; nil = v2
 )
 
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
+; posts the constraint that the notes[i] >= notes[i+1]
+(defun decreasing-pitch (sp notes)
+    (gil::g-rel sp notes gil::IRT_GQ nil) ; nil = v2
+)
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

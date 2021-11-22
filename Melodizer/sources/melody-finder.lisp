@@ -525,6 +525,30 @@
             :font om::*om-default-font1*
           )
 
+          ;checkbox for decreasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 190 60) ; position
+            (om::om-make-point 20 20) ; size
+            "Decreasing pitch"
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for strictly-decreasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 210 60) 
+            (om::om-make-point 200 20) 
+            "Decreasing pitch"
+            :font om::*om-default-font1*
+          )
+
         )
       )
 
