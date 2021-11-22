@@ -501,6 +501,30 @@
             :font om::*om-default-font1*
           )
 
+          ;checkbox for increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 60) ; position
+            (om::om-make-point 20 20) ; size
+            "Increasing pitch"
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 60) 
+            (om::om-make-point 150 20) 
+            "Increasing pitch"
+            :font om::*om-default-font1*
+          )
+
         )
       )
 

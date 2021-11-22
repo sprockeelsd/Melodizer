@@ -70,6 +70,9 @@
     (if (find "strictly-decreasing-pitch" optional-constraints :test #'equal)
         (strictly-decreasing-pitch sp notes)
     )
+    (if (find "increasing-pitch" optional-constraints :test #'equal)
+        (increasing-pitch sp notes)
+    )
 )
 
 ; SEARCH-NEXT-MELODY-FINDER
