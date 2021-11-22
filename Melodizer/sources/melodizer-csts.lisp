@@ -32,6 +32,24 @@
 
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
+; <intervals> is a lost if IntVars representing the intervals between consecutive notes
+; ensures that the melodic direction is mostly upwards
+; TODO PERMETTRE DE PRECISER A QUEL POINT CA DOIT MONTER
+(defun mostly-increasing-pitch (sp notes intervals)
+    (let (sum nbsum interval-domain-greater-than-zero) 
+        (setq sum (gil::add-int-var sp 1 (* 127 (length intervals)))) ;  variable to hold the result of the sum of all intervals
+        (setq nbg (gil::add-int-var sp 0 (length intervals))) ; variable to hold the number of intervals that are bigger than 0
+        (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 128 :by 1 collect n)); [1..127]
+
+        (gil::g-sum sp sum intervals); sum = sum(intervals)
+        (gil::g-rel sp sum gil::IRT_GR 0); sum > 0
+        ;(gil::g-count sp intervals interval-domain-greater-than-zero gil::IRT_GR nbg); nbsum = nb of intervals > 0
+        (gil::g-rel sp nbg gil::IRT_GQ (floor (* 80 (length intervals)) 100)); nbsum >= 0.8*size(intervals)
+    )
+)
+
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
 ; posts the constraint that the notes[i] > notes[i+1]
 (defun strictly-decreasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_GR nil) ; nil = v2

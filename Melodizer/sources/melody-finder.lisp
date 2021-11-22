@@ -459,6 +459,7 @@
             (om::om-make-point 10 40) ; position
             (om::om-make-point 20 20) ; size
             "Strictly increasing pitch"
+            :checked-p (find "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
                             (push "strictly-increasing-pitch" (optional-constraints (om::object self)))
@@ -483,6 +484,7 @@
             (om::om-make-point 190 40) ; position
             (om::om-make-point 20 20) ; size
             "Strictly decreasing pitch"
+            :checked-p (find "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
                             (push "strictly-decreasing-pitch" (optional-constraints (om::object self)))
@@ -507,6 +509,7 @@
             (om::om-make-point 10 60) ; position
             (om::om-make-point 20 20) ; size
             "Increasing pitch"
+            :checked-p (find "increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
                             (push "increasing-pitch" (optional-constraints (om::object self)))
@@ -531,6 +534,7 @@
             (om::om-make-point 190 60) ; position
             (om::om-make-point 20 20) ; size
             "Decreasing pitch"
+            :checked-p (find "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
                             (push "decreasing-pitch" (optional-constraints (om::object self)))
@@ -573,6 +577,7 @@
             (om::om-make-point 10 50) ; position
             (om::om-make-point 20 20) ; size
             "All different notes"
+            :checked-p (find "all-different-notes" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
                           (if (om::om-checked-p c)
                             (push "all-different-notes" (optional-constraints (om::object self)))
