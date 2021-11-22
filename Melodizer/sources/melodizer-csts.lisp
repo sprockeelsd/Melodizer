@@ -15,11 +15,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; MELODY DIRECTION constraints ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; posts the constraint that the pitch[i] < pitch[i+1]
-(defun strictly-increasing-pitch (sp notes) ; WORKS
+(defun strictly-increasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_LE nil) ; nil = v2
+)
+
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
+; posts the constraint that the pitch[i] < pitch[i+1]
+(defun strictly-decreasing-pitch (sp notes)
+    (gil::g-rel sp notes gil::IRT_GR nil) ; nil = v2
 )
 
 

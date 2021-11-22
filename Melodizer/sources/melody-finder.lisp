@@ -114,17 +114,17 @@
       
       ; The coordinates here are coordinates in the main view
       (input-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with input
-        :size (om::om-make-point 400 300)
+        :size (om::om-make-point 450 300)
         :position (om::om-make-point 5 30)
         :bg-color om::*azulito*) 
       )
       (search-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with the search for solutions
-        :size (om::om-make-point 400 300)
-        :position (om::om-make-point 410 30)
+        :size (om::om-make-point 450 300)
+        :position (om::om-make-point 460 30)
         :bg-color om::*azulito*)
       )
       (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
-        :size (om::om-make-point 805 400)
+        :size (om::om-make-point 905 400)
         :position (om::om-make-point 5 335)
         :bg-color om::*azulito*)
       )
@@ -425,8 +425,6 @@
       ;;; creating the constraints panel ;;;
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-      (check-box-list (list))
-
       ; coordinates here are local to constraint-panel
 
       ;;; subview for the pitch orientation (climbing, going down, ...)
@@ -434,7 +432,7 @@
       (pitch-orientation
         (om::om-make-view
           'om::om-view
-          :size (om::om-make-point 300 300)
+          :size (om::om-make-point 400 300)
           :position (om::om-make-point 500 50)
           :bg-color (om::om-make-color 0.48 0.4 0.93)
         )
@@ -443,6 +441,8 @@
       (pitch-orientation-panel 
         (om::om-add-subviews
           pitch-orientation
+
+          ; coordinates here are local to pitch-orientation panel
 
           ;title
           (om::om-make-dialog-item 
@@ -472,8 +472,32 @@
           (om::om-make-dialog-item 
             'om::om-static-text 
             (om::om-make-point 30 40) 
-            (om::om-make-point 200 20) 
+            (om::om-make-point 150 20) 
             "Strictly increasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ;checkbox for strictly-decreasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 190 40) ; position
+            (om::om-make-point 20 20) ; size
+            "Strictly decreasing pitch"
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "strictly-decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for strictly-decreasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 210 40) 
+            (om::om-make-point 200 20) 
+            "Strictly decreasing pitch"
             :font om::*om-default-font1*
           )
 
