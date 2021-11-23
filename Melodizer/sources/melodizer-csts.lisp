@@ -34,14 +34,14 @@
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; <intervals> is a list if IntVars representing the intervals between consecutive notes
 ; ensures that the melodic direction is mostly upwards
-; TODO PERMETTRE DE PRECISER A QUEL POINT CA DOIT MONTER
-(defun mostly-increasing-pitch (sp notes intervals)
+; TODO PEUT-ETRE EN FAIRE 2, CELLE-CI ET UNE QUI DIT QUE LES INTERVALLES DESCENDANTS DOIVENT ETRE PETITS
+(defun mostly-increasing-pitch (sp notes intervals global-interval)
     (let (sum interval-domain-greater-than-zero) 
         (setq sum (gil::add-int-var sp 1 (* 127 (length intervals)))) ;  variable to hold the result of the sum of all intervals
         (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 128 :by 1 collect n)); [1..127]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
-        (gil::g-rel sp sum gil::IRT_GR 4); sum > 0 CHANGER LA VALEUR APRES (genre 4)
+        (gil::g-rel sp sum gil::IRT_GR (parse-integer global-interval))
         (gil::g-count sp intervals interval-domain-greater-than-zero gil::IRT_GQ (ceiling (* 80 (length intervals)) 100)); (nb of intervals > 0) >= 0.8*size(intervals)
     )
 )

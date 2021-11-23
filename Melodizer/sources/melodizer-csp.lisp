@@ -4,11 +4,12 @@
 ; <input> is a voice object with the chords on top of which the melody will be played
 ; <rhythm> the rhythm of the melody to be found in the form of a voice object
 ; <optional-constraints> is a list of optional constraint names that have to be applied to the problem
+; <global interval> is the global interval that the melody should cover if the mostly increasing/decreasing constraint is selected
 ; <key> is the key in which the melody is
 ; <mode> is the mode of the tonality (major, minor)
 ; This function creates the CSP by creating the space and the variables, posting the constraints and the branching, specifying
 ; the search options and creating the search engine. 
-(defmethod melody-finder (input rhythm optional-constraints &optional (key 60.0) (mode "major"))
+(defmethod melody-finder (input rhythm optional-constraints &optional (global-interval nil) (key 60.0) (mode "major"))
     (let ((sp (gil::new-space)); create the space; 
         pitch intervals dfs tstop sopts)
 
@@ -34,7 +35,7 @@
         (harmonic-interval-chord sp pitch rhythm input)
 
         ; optional constraints
-        (post-optional-constraints optional-constraints sp pitch intervals)
+        (post-optional-constraints optional-constraints sp pitch intervals global-interval)
         
         ; branching
         ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
@@ -62,7 +63,7 @@
 
 ;posts the optional constraints specified in the list
 ; TODO CHANGE LATER SO THE FUNCTION CAN BE CALLED FROM THE STRING IN THE LIST AND NOT WITH A SERIES OF IF STATEMENTS
-(defun post-optional-constraints (optional-constraints sp notes intervals)
+(defun post-optional-constraints (optional-constraints sp notes intervals global-interval)
     (if (find "all-different-notes" optional-constraints :test #'equal)
         (all-different-notes sp notes)
     )
@@ -79,7 +80,7 @@
         (decreasing-pitch sp notes)
     )
     (if (find "mostly-increasing-pitch" optional-constraints :test #'equal)
-        (mostly-increasing-pitch sp notes intervals)
+        (mostly-increasing-pitch sp notes intervals global-interval)
     )
 )
 

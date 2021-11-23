@@ -12,6 +12,7 @@
     (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
     (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes.")
+    (global-interval :accessor global-interval :initarg :global-interval :initform "1" :documentation "global interval that the produced melody should cover")
     (optional-constraints :accessor optional-constraints :initarg :optional-constraints :initform (list) :documentation "a list of booleans telling if the optional constraint should be added to the problem")
     (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
@@ -153,6 +154,7 @@
             (om::om-make-point 5 25) 
             (om::om-make-point 200 20) 
             "Tool Mode selection"
+            :value(tool-mode (om::object self))
             :range '("Melody-Finder" "Accompagnement-Finder" "Ornement")
             :di-action #'(lambda (m)
               ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
@@ -324,7 +326,7 @@
                           (cond
                             ((string-equal (tool-mode (om::object self)) "Melody-Finder"); melody finder mode, where the user gives as input a voice with chords
                               (let init; list to take the result of the call to melody-finder
-                                (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (optional-constraints (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
+                                (setq init (melody-finder (input-chords (om::object self)) (input-rhythm (om::object self)) (optional-constraints (om::object self)) (global-interval (om::object self)) (key (om::object self)) (mode (om::object self)))); get the search engine and the first solution of the CSP
                                 ; update the fields of the object to their new value
                                 (setf (result (om::object self)) init); store the result of the call to melody finder
                               )
@@ -577,7 +579,28 @@
             "Mostly increasing pitch"
             :font om::*om-default-font1*
           )
-          
+
+          ; name for the pop-up menu allowing to select the global interval
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 10 100) 
+            (om::om-make-point 200 20) 
+            "Total interval (in semitones)"
+            :font om::*om-default-font1*
+          )
+
+          ; pop-up menu for the selection of the global interval that the melody should go to
+          (om::om-make-dialog-item 
+            'om::pop-up-menu 
+            (om::om-make-point 10 120) 
+            (om::om-make-point 200 20) 
+            "Key selection"
+            :range (loop :for n :from 1 :below 25 :by 1 collect (write-to-string n))
+            :value (global-interval (om::object self))
+            :di-action #'(lambda (m)
+              (setf (global-interval (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+            )
+          )
 
         )
       )
@@ -690,14 +713,13 @@
 
 
   ;; ;;; text boxes (they can be edited!)
-
-  ;;     ;; (om::om-make-dialog-item
-  ;;     ;;   'om::text-box
-  ;;     ;;   (om::om-make-point 660 50) 
-  ;;     ;;   (om::om-make-point 180 20) 
-  ;;     ;;   "Variety of the solutions" 
-  ;;     ;;   :font om::*om-default-font1* 
-  ;;     ;; )
+;; (om::om-make-dialog-item
+;;   'om::text-box
+;;   (om::om-make-point 660 50) 
+;;   (om::om-make-point 180 20) 
+;;   "Variety of the solutions" 
+;;   :font om::*om-default-font1* 
+ ;; )
 
 )
 
