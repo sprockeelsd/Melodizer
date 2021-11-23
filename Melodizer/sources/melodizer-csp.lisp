@@ -21,22 +21,24 @@
         ; then, post the constraints
 
         ; mandatory constraints
+
+        ; cannot be removed, otherwise the intervals variable array has no meaning, it is not connected to pitch
+        (interval-between-adjacent-notes sp pitch intervals)
+
         (in-tonality sp pitch key mode)
 
         ;(precedence sp pitch 72 71)
-
-        (interval-between-adjacent-notes sp pitch intervals)
 
         (note-on-chord sp pitch rhythm input)
 
         (harmonic-interval-chord sp pitch rhythm input)
 
         ; optional constraints
-        (post-optional-constraints optional-constraints sp pitch)
+        (post-optional-constraints optional-constraints sp pitch intervals)
         
         ; branching
-        (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
-        ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
+        ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
+        (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
         ;(gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
 
         ;time stop
@@ -54,13 +56,13 @@
 
         (print "CSP constructed")
         ; return
-        (list se pitch tstop sopts)
+        (list se pitch tstop sopts intervals)
     )
 )
 
 ;posts the optional constraints specified in the list
 ; TODO CHANGE LATER SO THE FUNCTION CAN BE CALLED FROM THE STRING IN THE LIST AND NOT WITH A SERIES OF IF STATEMENTS
-(defun post-optional-constraints (optional-constraints sp notes)
+(defun post-optional-constraints (optional-constraints sp notes intervals)
     (if (find "all-different-notes" optional-constraints :test #'equal)
         (all-different-notes sp notes)
     )
@@ -76,6 +78,9 @@
     (if (find "decreasing-pitch" optional-constraints :test #'equal)
         (decreasing-pitch sp notes)
     )
+    (if (find "mostly-increasing-pitch" optional-constraints :test #'equal)
+        (mostly-increasing-pitch sp notes intervals)
+    )
 )
 
 ; SEARCH-NEXT-MELODY-FINDER
@@ -88,6 +93,7 @@
          (pitch* (second l))
          (tstop (third l))
          (sopts (fourth l))
+         (intervals (fifth l))
          (check t); for the while loop
          sol pitches)
 
@@ -103,7 +109,7 @@
         (setq pitches (to-midicent (gil::g-values sol pitch*))); store the values of the solution
         (print "pitches")
         (print pitches)
-        ;(print (stop-search melodizer-object))
+        (print (gil::g-values sol intervals))
 
         ;return a voice object that is the solution we just found
         (make-instance 'voice

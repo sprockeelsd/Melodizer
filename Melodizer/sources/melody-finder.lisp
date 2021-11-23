@@ -544,7 +544,7 @@
             )
           )
 
-          ; name for strictly-decreasing-pitch constraint
+          ; name for decreasing-pitch constraint
           (om::om-make-dialog-item 
             'om::om-static-text 
             (om::om-make-point 210 60) 
@@ -552,6 +552,32 @@
             "Decreasing pitch"
             :font om::*om-default-font1*
           )
+
+          ;checkbox for mostly-increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 80) ; position
+            (om::om-make-point 20 20) ; size
+            "Mostly increasing pitch"
+            :checked-p (find "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "mostly-increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for mostly-increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 80) 
+            (om::om-make-point 150 20) 
+            "Mostly increasing pitch"
+            :font om::*om-default-font1*
+          )
+          
 
         )
       )
