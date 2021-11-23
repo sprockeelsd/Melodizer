@@ -33,6 +33,7 @@
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; <intervals> is a list if IntVars representing the intervals between consecutive notes
+; <global-interval> is the global interval that the melody spans
 ; ensures that the melodic direction is mostly upwards
 ; TODO PEUT-ETRE EN FAIRE 2, CELLE-CI ET UNE QUI DIT QUE LES INTERVALLES DESCENDANTS DOIVENT ETRE PETITS
 (defun mostly-increasing-pitch (sp notes intervals global-interval)
@@ -41,7 +42,7 @@
         (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 128 :by 1 collect n)); [1..127]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
-        (gil::g-rel sp sum gil::IRT_GR (parse-integer global-interval))
+        (gil::g-rel sp sum gil::IRT_GQ (parse-integer global-interval)); sum >= global-interval
         (gil::g-count sp intervals interval-domain-greater-than-zero gil::IRT_GQ (ceiling (* 80 (length intervals)) 100)); (nb of intervals > 0) >= 0.8*size(intervals)
     )
 )
@@ -59,6 +60,22 @@
 (defun decreasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_GQ nil) ; nil = v2
 )
+
+; <sp> is the space
+; <notes> is a list of IntVars representing the pitch of the notes
+; <intervals> is a list if IntVars representing the intervals between consecutive notes
+; <global-interval> is the global interval that the melody spans
+(defun mostly-decreasing-pitch (sp notes intervals global-interval)
+    (let (sum interval-domain-smaller-than-zero)
+        (setq sum (gil::add-int-var sp (- (* 127 (length intervals))) -1)); variable to hold the result of the sum of the intervals
+        (setq interval-domain-smaller-than-zero (loop :for n :from 1 :to 128 :by 1 collect (- n))); [-127...-1]
+
+        (gil::g-sum sp sum intervals); sum = sum(intervals)
+        (gil::g-rel sp sum gil::IRT_LQ (- (parse-integer global-interval))); sum <= global-interval
+        (gil::g-count sp intervals interval-domain-smaller-than-zero gil::IRT_GQ (ceiling (* 80 (length intervals)) 100)); (nb of intervals < 0) >= 0.8*size(intervals)
+    )
+)
+
 
 
 

@@ -580,7 +580,32 @@
             :font om::*om-default-font1*
           )
 
-          ; name for the pop-up menu allowing to select the global interval
+          ;checkbox for mostly-decreasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 190 80) ; position
+            (om::om-make-point 20 20) ; size
+            "Mostly decreasing pitch"
+            :checked-p (find "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "mostly-decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for mostly-increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 210 80) 
+            (om::om-make-point 150 20) 
+            "Mostly decreasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ; name for the pop-up menu allowing to select the global interval for both mostly increasing/decreasing
           (om::om-make-dialog-item 
             'om::om-static-text 
             (om::om-make-point 10 100) 
@@ -589,11 +614,11 @@
             :font om::*om-default-font1*
           )
 
-          ; pop-up menu for the selection of the global interval that the melody should go to
+          ; pop-up menu for the selection of the global interval that the melody should go to for both
           (om::om-make-dialog-item 
             'om::pop-up-menu 
             (om::om-make-point 10 120) 
-            (om::om-make-point 200 20) 
+            (om::om-make-point 350 20) 
             "Key selection"
             :range (loop :for n :from 1 :below 25 :by 1 collect (write-to-string n))
             :value (global-interval (om::object self))
@@ -601,6 +626,7 @@
               (setf (global-interval (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
             )
           )
+
 
         )
       )

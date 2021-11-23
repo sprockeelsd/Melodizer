@@ -82,6 +82,9 @@
     (if (find "mostly-increasing-pitch" optional-constraints :test #'equal)
         (mostly-increasing-pitch sp notes intervals global-interval)
     )
+    (if (find "mostly-decreasing-pitch" optional-constraints :test #'equal)
+        (mostly-decreasing-pitch sp notes intervals global-interval)
+    )
 )
 
 ; SEARCH-NEXT-MELODY-FINDER
