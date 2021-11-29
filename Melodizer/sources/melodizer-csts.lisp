@@ -38,8 +38,8 @@
 ; TODO PEUT-ETRE EN FAIRE 2, CELLE-CI ET UNE QUI DIT QUE LES INTERVALLES DESCENDANTS DOIVENT ETRE PETITS
 (defun mostly-increasing-pitch (sp notes intervals global-interval)
     (let (sum interval-domain-greater-than-zero) 
-        (setq sum (gil::add-int-var sp 1 (* 127 (length intervals)))) ;  variable to hold the result of the sum of all intervals
-        (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 128 :by 1 collect n)); [1..127]
+        (setq sum (gil::add-int-var sp -48 48)) ;  variable to hold the result of the sum of all intervals (cant' be bigger than 127)
+        (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 13 :by 1 collect n)); [1..12]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
         (gil::g-rel sp sum gil::IRT_GQ (parse-integer global-interval)); sum >= global-interval
@@ -146,10 +146,10 @@
 ; TODO add other modes (natural minor, melodic minor, ...)
 (defun notes-from-tonality (key mode)
     (let (admissible-notes note scale i)
-        (if (string-equal mode "major")
-            (setq scale (list 2 2 1 2 2 2 1)); major
-            (setq scale (list 2 1 2 2 1 2 2)); minor
-        )
+
+        ; get the scale in semi-tones
+        (setq scale (get-scale mode))
+
         ; then, create a list and add the notes in it
         (setq note key)
         (setq i 0)
@@ -157,24 +157,25 @@
         ; add all notes over the key, then add all notes under the key
         (om::while (<= note 127) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
-            (if (>= i 7)
+            (if (>= i (length scale))
                 (setq i 0)            
             )
             (incf note (nth i scale)); note = note + scale[i mod 6]
             (incf i 1); i++
         )
         (setq note key)
-        (decf note (nth (- 6 0) scale)); note = note - scale[6-i mod 6]
+        (decf note (nth (- (- (length scale) 1) 0) scale)); note = note - scale[6-i mod 6]
         (setq i 1)
 
         (om::while (>= note 0) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list
-            (if (>= i 7)
+            (if (>= i (length scale))
                 (setq i 0)
             )
-            (decf note (nth (- 6 i) scale)); note = note - scale[6-i mod 6]
+            (decf note (nth (- (- (length scale) 1) i) scale)); note = note - scale[6-i mod 6]
             (incf i 1); i++
         )
+        (print admissible-notes)
         admissible-notes
     )
 )

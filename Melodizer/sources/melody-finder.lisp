@@ -9,7 +9,7 @@
   ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "The input chords on top of which the melody will be played in the form of a voice object.")
     (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation "The rhythm of the melody in the form of a voice object. ")
     (key :accessor key :initarg :key :initform 60 :documentation "The key the melody is in (default : C).")
-    (mode :accessor mode :initarg :mode :initform "major" :documentation "The mode the melody is in (default : major).")
+    (mode :accessor mode :initarg :mode :initform "ionian (major)" :documentation "The mode the melody is in (default : major).")
     (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
     (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes.")
     (global-interval :accessor global-interval :initarg :global-interval :initform "1" :documentation "global interval that the produced melody should cover")
@@ -181,7 +181,7 @@
             (om::om-make-point 5 85) 
             (om::om-make-point 200 20) 
             "Mode selection"
-            :range '("major" "minor"); add pentatonic, chromatic, ... ?
+            :range '("ionian (major)" "dorian" "phrygian" "lydian" "mixolydian" "aeolian (natural minor)" "locrian" "pentatonic" "harmonic minor" "chromatic")
             :value (mode (om::object self))
             :di-action #'(lambda (m)
               (setf (mode (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))) ; set the mode according to the choice of the user
@@ -264,7 +264,7 @@
               (setf (input-chords (om::object self)) (make-instance 'voice))
               (setf (input-rhythm (om::object self)) (make-instance 'voice))
               (setf (key (om::object self)) 60)
-              (setf (mode (om::object self)) "major")
+              (setf (mode (om::object self)) "ionian (major)")
               (setf (tool-mode (om::object self)) "Melody-Finder") 
               (setf (variety (om::object self)) 0)
             )

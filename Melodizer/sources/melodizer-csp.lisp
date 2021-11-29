@@ -53,7 +53,7 @@
         (gil::set-time-stop sopts tstop); set the timestop object to stop the search if it takes too long
 
         ; search engine
-        (setq se (gil::search-engine sp (gil::opts sopts)))
+        (setq se (gil::search-engine sp (gil::opts sopts) gil::DFS))
 
         (print "CSP constructed")
         ; return
