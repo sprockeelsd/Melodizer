@@ -22,6 +22,9 @@
     (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation "The list of phrases created by the user")
     (periodes-list :accessor periodes-list :initarg :periodes-list :initform '() :documentation "The list of periodes created by the user")
     (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
+    (output-motif :accessor output-motif :initarg :output-motif :initform nil :documentation "The selected motif")
+    (output-phrase :accessor output-phrase :initarg :output-phrase :initform nil :documentation "The selected phrase")
+    (output-period :accessor output-period :initarg :output-period :initform nil :documentation "The selected period")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -51,37 +54,6 @@
   ;;; do what needs to be done by default
   (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
   (make-my-interface self)
-)
-
-; function to update the list of solutions in the pop-up menu without having to close and re-open the window
-(defun update-pop-up (self my-panel data position size)
-  (om::om-add-subviews my-panel
-    (om::om-make-dialog-item 
-      'om::om-pop-up-dialog-item 
-      position ;(om::om-make-point 5 130)
-      size ;(om::om-make-point 320 20) 
-      "list of solutions"
-      :range (loop for item in (make-data-sol data) collect (car item))
-      ;:value (mode (object self)); change so it goes to the newest added solution? 
-      :di-action #'(lambda (m)
-                    (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution to the currently selected solution
-                    (let ((indx (om::om-get-selected-item-index m)))
-                      (om::openeditorframe ; open the editor of the selected solution
-                        (om::omNG-make-new-instance 
-                          (make-instance 
-                            'poly ; the selected voice object a poly with the solution and the input chords
-                            :voices (list 
-                              (nth indx (solutions-list (om::object self))) 
-                              (input-chords (om::object self))
-                            )
-                          )
-                          (format nil "melody ~D" (1+ indx)); name of the window
-                        )
-                      )
-                    )
-      )
-    )
-  )
 )
 
 ; function to create the tool's interface
@@ -163,8 +135,8 @@
             (om::om-make-point 200 20) 
             "Tool Mode selection"
             :value(tool-mode (om::object self))
-            :range '("Melody-Finder" "Accompagnement-Finder" "Ornement")
-            :di-action #'(lambda (m)
+            :range '("Melody-Finder" "Motif Maker" "Phrase Maker" "Period Maker")
+            :di-action #'(lambda (m) ; TODO reset all additional constraints that are not general
               ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
               (setf (tool-mode (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))) ; set the tool-mode according to the choice of the user
             )
@@ -339,10 +311,13 @@
                                 (setf (result (om::object self)) init); store the result of the call to melody finder
                               )
                             )
-                            ((string-equal (tool-mode (om::object self)) "Accompagnement-Finder")
+                            ((string-equal (tool-mode (om::object self)) "Motif Maker")
                               (print "This mode is not supported yet")
                             )
-                            ((string-equal (tool-mode (om::object self)) "Ornement")
+                            ((string-equal (tool-mode (om::object self)) "Phrase Maker")
+                              (print "This mode is not supported yet")
+                            )
+                            ((string-equal (tool-mode (om::object self)) "Period Maker")
                               (print "This mode is not supported yet")
                             )
                           )
@@ -428,6 +403,28 @@
                           )
             )
           )
+
+          ; button add the selected solution to the list of motives
+          (om::om-make-dialog-item 
+            'om::om-button
+            (om::om-make-point 5 170) ; position (horizontal, vertical)
+            (om::om-make-point 100 20) ; size (horizontal, vertical)
+            "Add to motives"
+            :di-action #'(lambda (b) 
+                          (if (typep (output-solution (om::object self)) 'null); if there is no solution to add
+                            (error "There is no motif to keep.")
+                          )
+                          (if (typep (motives-list (om::object self)) 'null); if it's the first motif
+                            (setf (motives-list (om::object self)) (list (output-solution (om::object self)))); initialize the list
+                            (nconc (motives-list (om::object self)) (list (output-solution (om::object self)))); add it to the end
+                          )
+                          (progn
+                            (update-pop-up self solution-assembly-panel (motives-list (om::object self)) (om::om-make-point 5 130) (om::om-make-point 320 20)); update the pop-up menu
+                            (oa::om-invalidate-view self)
+                            ;(print "updated solutions")
+                          )
+            )
+          )
         )
       )
 
@@ -437,209 +434,38 @@
 
       ; coordinates here are local to constraint-panel
 
-      ;;; subview for the pitch orientation (climbing, going down, ...)
+      ;;; subviews
 
-      (pitch-orientation
+      (general-constraints
         (om::om-make-view
           'om::om-view
-          :size (om::om-make-point 400 300)
-          :position (om::om-make-point 500 50)
-          :bg-color (om::om-make-color 0 0.6 0.3)
-        )
+          :size (om::om-make-point 220 375)
+          :position (om::om-make-point 5 20)
+          :bg-color (om::om-make-color 0 0.6 0.3))
+      )
+      (motif-maker-constraints
+        (om::om-make-view
+          'om::om-view
+          :size (om::om-make-point 220 375)
+          :position (om::om-make-point 230 20)
+          :bg-color (om::om-make-color 0 0.6 0.3))
+      )
+      (phrase-maker-constraints
+        (om::om-make-view
+          'om::om-view
+          :size (om::om-make-point 220 375)
+          :position (om::om-make-point 455 20)
+          :bg-color (om::om-make-color 0 0.6 0.3))
+      )
+      (period-maker-constraints
+        (om::om-make-view
+          'om::om-view
+          :size (om::om-make-point 220 375)
+          :position (om::om-make-point 680 20)
+          :bg-color (om::om-make-color 0 0.6 0.3))
       )
 
-      (pitch-orientation-panel 
-        (om::om-add-subviews
-          pitch-orientation
-
-          ; coordinates here are local to pitch-orientation panel
-
-          ;title
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 100 2) 
-            (om::om-make-point 200 20) 
-            "Pitch orientation"
-            :font om::*om-default-font1b*
-          )
-
-          ;checkbox for strictly-increasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 10 40) ; position
-            (om::om-make-point 20 20) ; size
-            "Strictly increasing pitch"
-            :checked-p (find "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "strictly-increasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for strictly-increasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 30 40) 
-            (om::om-make-point 150 20) 
-            "Strictly increasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ;checkbox for strictly-decreasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 190 40) ; position
-            (om::om-make-point 20 20) ; size
-            "Strictly decreasing pitch"
-            :checked-p (find "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "strictly-decreasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for strictly-decreasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 210 40) 
-            (om::om-make-point 200 20) 
-            "Strictly decreasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ;checkbox for increasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 10 60) ; position
-            (om::om-make-point 20 20) ; size
-            "Increasing pitch"
-            :checked-p (find "increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "increasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for increasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 30 60) 
-            (om::om-make-point 150 20) 
-            "Increasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ;checkbox for decreasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 190 60) ; position
-            (om::om-make-point 20 20) ; size
-            "Decreasing pitch"
-            :checked-p (find "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "decreasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for decreasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 210 60) 
-            (om::om-make-point 200 20) 
-            "Decreasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ;checkbox for mostly-increasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 10 80) ; position
-            (om::om-make-point 20 20) ; size
-            "Mostly increasing pitch"
-            :checked-p (find "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "mostly-increasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for mostly-increasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 30 80) 
-            (om::om-make-point 150 20) 
-            "Mostly increasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ;checkbox for mostly-decreasing-pitch constraint
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 190 80) ; position
-            (om::om-make-point 20 20) ; size
-            "Mostly decreasing pitch"
-            :checked-p (find "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
-            :di-action #'(lambda (c)
-                          (if (om::om-checked-p c)
-                            (push "mostly-decreasing-pitch" (optional-constraints (om::object self)))
-                            (setf (optional-constraints (om::object self)) (remove "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
-                          )
-                          (print (optional-constraints (om::object self)))
-            )
-          )
-
-          ; name for mostly-increasing-pitch constraint
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 210 80) 
-            (om::om-make-point 150 20) 
-            "Mostly decreasing pitch"
-            :font om::*om-default-font1*
-          )
-
-          ; name for the pop-up menu allowing to select the global interval for both mostly increasing/decreasing
-          (om::om-make-dialog-item 
-            'om::om-static-text 
-            (om::om-make-point 10 100) 
-            (om::om-make-point 200 20) 
-            "Total interval (in semitones)"
-            :font om::*om-default-font1*
-          )
-
-          ; pop-up menu for the selection of the global interval that the melody should go to for both
-          (om::om-make-dialog-item 
-            'om::pop-up-menu 
-            (om::om-make-point 10 120) 
-            (om::om-make-point 350 20) 
-            "Key selection"
-            :range (loop :for n :from 1 :below 25 :by 1 collect (write-to-string n))
-            :value (global-interval (om::object self))
-            :di-action #'(lambda (m)
-              (setf (global-interval (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
-            )
-          )
-
-
-        )
-      )
-
-      ;;; rest of the constraint panel
+      ;;; the main panel
 
       (elements-constraints-panel
         (om::om-add-subviews
@@ -653,11 +479,31 @@
             "Additional constraints"
             :font om::*om-default-font1b*
           )
+        )
+      )
+
+      ;;; the different panels
+
+      ;=== general constraints panel ===========================================================================================
+
+      (elements-general-constraints-panel 
+        (om::om-add-subviews
+          general-constraints
+
+
+          ; title
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 50 2) 
+            (om::om-make-point 200 20) 
+            "General constraints"
+            :font om::*om-default-font1b*
+          )
 
           ;checkbox for all-different constraint
           (om::om-make-dialog-item
             'om::om-check-box
-            (om::om-make-point 10 50) ; position
+            (om::om-make-point 10 30) ; position
             (om::om-make-point 20 20) ; size
             "All different notes"
             :checked-p (find "all-different-notes" (optional-constraints (om::object self)) :test #'equal)
@@ -673,50 +519,233 @@
           ; name for all-different constraint
           (om::om-make-dialog-item 
             'om::om-static-text 
-            (om::om-make-point 30 50) 
+            (om::om-make-point 30 30) 
             (om::om-make-point 200 20) 
             "All different notes"
             :font om::*om-default-font1*
           )
+        )
+      )
 
-          ;checkbox for constraint 2 (under constraint 1)
-          (om::om-make-dialog-item
-            'om::om-check-box
-            (om::om-make-point 10 80) ; position
-            (om::om-make-point 20 20) ; size
-            "Constraint 2"
-            :di-action #'(lambda (c)
-                          (print "Constraint 2 checked")
-                        )
-          )
+      ;=== motif maker constraints panel ===========================================================================================
 
-          ; name for constraint 2
+      (elements-motif-maker-constraints-panel 
+        (om::om-add-subviews
+          motif-maker-constraints
+
+          ; title
           (om::om-make-dialog-item 
             'om::om-static-text 
-            (om::om-make-point 30 80) 
+            (om::om-make-point 50 2) 
             (om::om-make-point 200 20) 
-            "Constraint 2"
+            "Motif Maker constraints"
+            :font om::*om-default-font1b*
+          )
+
+          ;checkbox for strictly-increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 30) ; position
+            (om::om-make-point 20 20) ; size
+            "Strictly increasing pitch"
+            :checked-p (find "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "strictly-increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "strictly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for strictly-increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 30) 
+            (om::om-make-point 150 20) 
+            "Strictly increasing pitch"
             :font om::*om-default-font1*
           )
 
-          ;checkbox for constraint 3 (to the right of constraint 1)
+          ;checkbox for strictly-decreasing-pitch constraint
           (om::om-make-dialog-item
             'om::om-check-box
-            (om::om-make-point 230 50) ; position
+            (om::om-make-point 10 50) ; position
             (om::om-make-point 20 20) ; size
-            "Constraint 3"
+            "Strictly decreasing pitch"
+            :checked-p (find "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
             :di-action #'(lambda (c)
-                          (print "Constraint 3 checked")
-                        )
+                          (if (om::om-checked-p c)
+                            (push "strictly-decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "strictly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
           )
 
-          ; name for constraint 3
+          ; name for strictly-decreasing-pitch constraint
           (om::om-make-dialog-item 
             'om::om-static-text 
-            (om::om-make-point 250 50) 
+            (om::om-make-point 30 50) 
             (om::om-make-point 200 20) 
-            "Constraint 3"
+            "Strictly decreasing pitch"
             :font om::*om-default-font1*
+          )
+
+          ;checkbox for increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 70) ; position
+            (om::om-make-point 20 20) ; size
+            "Increasing pitch"
+            :checked-p (find "increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 70) 
+            (om::om-make-point 150 20) 
+            "Increasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ;checkbox for decreasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 90) ; position
+            (om::om-make-point 20 20) ; size
+            "Decreasing pitch"
+            :checked-p (find "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for decreasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 90) 
+            (om::om-make-point 200 20) 
+            "Decreasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ;checkbox for mostly-increasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 110) ; position
+            (om::om-make-point 20 20) ; size
+            "Mostly increasing pitch"
+            :checked-p (find "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "mostly-increasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "mostly-increasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for mostly-increasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 110) 
+            (om::om-make-point 150 20) 
+            "Mostly increasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ;checkbox for mostly-decreasing-pitch constraint
+          (om::om-make-dialog-item
+            'om::om-check-box
+            (om::om-make-point 10 130) ; position
+            (om::om-make-point 20 20) ; size
+            "Mostly decreasing pitch"
+            :checked-p (find "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal)
+            :di-action #'(lambda (c)
+                          (if (om::om-checked-p c)
+                            (push "mostly-decreasing-pitch" (optional-constraints (om::object self)))
+                            (setf (optional-constraints (om::object self)) (remove "mostly-decreasing-pitch" (optional-constraints (om::object self)) :test #'equal))
+                          )
+                          (print (optional-constraints (om::object self)))
+            )
+          )
+
+          ; name for mostly-decreasing-pitch constraint
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 30 130) 
+            (om::om-make-point 150 20) 
+            "Mostly decreasing pitch"
+            :font om::*om-default-font1*
+          )
+
+          ; name for the pop-up menu allowing to select the global interval for both mostly increasing/decreasing
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 10 150) 
+            (om::om-make-point 200 20) 
+            "Total interval (in semitones)"
+            :font om::*om-default-font1*
+          )
+
+          ; pop-up menu for the selection of the global interval that the melody should go to for both
+          (om::om-make-dialog-item 
+            'om::pop-up-menu 
+            (om::om-make-point 10 170) 
+            (om::om-make-point 180 20) 
+            "Key selection"
+            :range (loop :for n :from 1 :below 25 :by 1 collect (write-to-string n))
+            :value (global-interval (om::object self))
+            :di-action #'(lambda (m)
+              (setf (global-interval (om::object self)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+            )
+          )
+        )
+      )
+
+      ;=== phrase maker constraints panel ===========================================================================================
+      
+      (elements-phrase-maker-constraints-panel 
+        (om::om-add-subviews
+          phrase-maker-constraints
+
+          ; title
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 50 2) 
+            (om::om-make-point 200 20) 
+            "Phrase Maker constraints"
+            :font om::*om-default-font1b*
+          )
+        )
+      )
+
+      ;=== period maker constraints panel ===========================================================================================
+
+      (elements-period-maker-constraints-panel 
+        (om::om-add-subviews
+          period-maker-constraints
+
+          ; title
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 50 2) 
+            (om::om-make-point 200 20) 
+            "Period Maker constraints"
+            :font om::*om-default-font1b*
           )
         )
       )
@@ -726,7 +755,7 @@
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       
       ; coordinates here are local to solution-assembly-panel
-      (elements-input-panel
+      (elements-solution-assembly-panel
         (om::om-add-subviews
           solution-assembly-panel
 
@@ -737,6 +766,29 @@
             (om::om-make-point 120 20) 
             "Solution assembly"
             :font om::*om-default-font1b*
+          )
+
+          ;pop-up list to select the desired motif
+          ;this is only for the start, as a new pop-up menu is created with every new solution
+          ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-pop-up function
+          (om::om-make-dialog-item
+            'om::pop-up-menu
+            (om::om-make-point 5 130)
+            (om::om-make-point 320 20)
+            "Motif selection"
+            :range (motives-list (om::object self))
+            :di-action #'(lambda (m)
+              (setf (output-motif (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output to the selected solution
+            )
+          )
+
+          ; name for the pop-up list
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 5 110) 
+            (om::om-make-point 200 20) 
+            "Motives"
+            :font om::*om-default-font1*
           )
 
 
@@ -759,7 +811,10 @@
     ; add subview to the constraints panel
     (om::om-add-subviews 
       constraints-panel
-      pitch-orientation
+      general-constraints
+      motif-maker-constraints
+      phrase-maker-constraints
+      period-maker-constraints
     )
   )
   ; return the editor
@@ -780,4 +835,7 @@
  ;; )
 
 )
+
+
+
 

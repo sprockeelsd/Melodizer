@@ -16,6 +16,37 @@
     )
 )
 
+; function to update the list of solutions in the pop-up menu without having to close and re-open the window
+(defun update-pop-up (self my-panel data position size)
+  (om::om-add-subviews my-panel
+    (om::om-make-dialog-item 
+      'om::om-pop-up-dialog-item 
+      position ;(om::om-make-point 5 130)
+      size ;(om::om-make-point 320 20) 
+      "list of solutions"
+      :range (loop for item in (make-data-sol data) collect (car item))
+      ;:value (mode (object self)); change so it goes to the newest added solution? 
+      :di-action #'(lambda (m)
+                    (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution to the currently selected solution
+                    (let ((indx (om::om-get-selected-item-index m)))
+                      (om::openeditorframe ; open the editor of the selected solution
+                        (om::omNG-make-new-instance 
+                          (make-instance 
+                            'poly ; the selected voice object a poly with the solution and the input chords
+                            :voices (list 
+                              (nth indx data) 
+                              (input-chords (om::object self))
+                            )
+                          )
+                          (format nil "melody ~D" (1+ indx)); name of the window
+                        )
+                      )
+                    )
+      )
+    )
+  )
+)
+
 ;function to get the starting times (in seconds) of the notes
 ; from karim haddad (OM)
 (defmethod voice-onsets ((self voice))
