@@ -180,7 +180,7 @@
 (defun make-data-sol (liste)
   (loop for l in liste
         for i from 1 to (length liste)
-        collect (list (format nil "melody ~D: ~A"  i l) l)))
+        collect (list (format nil "solution ~D: ~A"  i l) l)))
     
 
 ; taken from rhythm box (add link)

@@ -18,6 +18,9 @@
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
     (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of all the solutions saved by the user.")
+    (motives-list :accessor motives-list :initarg :motives-list :initform '() :documentation "The list of motives created by the user")
+    (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation "The list of phrases created by the user")
+    (periodes-list :accessor periodes-list :initarg :periodes-list :initform '() :documentation "The list of periodes created by the user")
     (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
@@ -51,14 +54,14 @@
 )
 
 ; function to update the list of solutions in the pop-up menu without having to close and re-open the window
-(defun update-solutions-list (self my-panel)
+(defun update-pop-up (self my-panel data position size)
   (om::om-add-subviews my-panel
     (om::om-make-dialog-item 
       'om::om-pop-up-dialog-item 
-      (om::om-make-point 5 130) 
-      (om::om-make-point 320 20) 
+      position ;(om::om-make-point 5 130)
+      size ;(om::om-make-point 320 20) 
       "list of solutions"
-      :range (loop for item in (make-data-sol (solutions-list (om::object self))) collect (car item)); make a list with the number of the solution to make it clearer for the user
+      :range (loop for item in (make-data-sol data) collect (car item))
       ;:value (mode (object self)); change so it goes to the newest added solution? 
       :di-action #'(lambda (m)
                     (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution to the currently selected solution
@@ -127,6 +130,11 @@
       (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
         :size (om::om-make-point 905 400)
         :position (om::om-make-point 5 335)
+        :bg-color om::*azulito*)
+      )
+      (solution-assembly-panel (om::om-make-view 'om::om-view ; part of the display to put different solutions together
+        :size (om::om-make-point 450 705)
+        :position (om::om-make-point 915 30)
         :bg-color om::*azulito*)
       )
 
@@ -292,7 +300,7 @@
 
           ;pop-up list to select the desired solution
           ;this is only for the start, as a new pop-up menu is created with every new solution
-          ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-solutions-list function
+          ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-pop-up function
           (om::om-make-dialog-item
             'om::pop-up-menu
             (om::om-make-point 5 130)
@@ -318,7 +326,7 @@
                           (setf (solutions-list (om::object self)) '())
                           (setf (solution (om::object self)) nil)
                           (progn
-                            (update-solutions-list self search-panel); update the pop-up menu with the list of the solutions selected by the user
+                            (update-pop-up self search-panel (solutions-list (om::object self)) (om::om-make-point 5 130) (om::om-make-point 320 20))
                             (oa::om-invalidate-view self)
                           )
                           ; reset the boolean that tells wether we want to stop the search or not
@@ -414,7 +422,7 @@
                             (nconc (solutions-list (om::object self)) (list (solution (om::object self)))); add it to the end
                           )   
                           (progn
-                            (update-solutions-list self search-panel); update the pop-up menu with the list of the solutions selected by the user
+                            (update-pop-up self search-panel (solutions-list (om::object self)) (om::om-make-point 5 130) (om::om-make-point 320 20)); update the pop-up menu with the list of the solutions selected by the user
                             (oa::om-invalidate-view self)
                             ;(print "updated solutions")
                           )
@@ -436,7 +444,7 @@
           'om::om-view
           :size (om::om-make-point 400 300)
           :position (om::om-make-point 500 50)
-          :bg-color (om::om-make-color 0.48 0.4 0.93)
+          :bg-color (om::om-make-color 0 0.6 0.3)
         )
       )
 
@@ -713,6 +721,29 @@
         )
       )
 
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;;; creating the solution assembly panel ;;;
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      
+      ; coordinates here are local to solution-assembly-panel
+      (elements-input-panel
+        (om::om-add-subviews
+          solution-assembly-panel
+
+          ; title
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 190 2) 
+            (om::om-make-point 120 20) 
+            "Solution assembly"
+            :font om::*om-default-font1b*
+          )
+
+
+
+        )
+      )
+
       ;;; add new panel here
 
     )
@@ -723,8 +754,9 @@
       input-panel
       search-panel
       constraints-panel
+      solution-assembly-panel
     )
-
+    ; add subview to the constraints panel
     (om::om-add-subviews 
       constraints-panel
       pitch-orientation
