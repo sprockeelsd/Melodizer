@@ -20,11 +20,12 @@
     (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of all the solutions saved by the user.")
     (motives-list :accessor motives-list :initarg :motives-list :initform '() :documentation "The list of motives created by the user")
     (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation "The list of phrases created by the user")
-    (periodes-list :accessor periodes-list :initarg :periodes-list :initform '() :documentation "The list of periodes created by the user")
+    (periods-list :accessor periods-list :initarg :periods-list :initform '() :documentation "The list of periodes created by the user")
     (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
     (output-motif :accessor output-motif :initarg :output-motif :initform nil :documentation "The selected motif")
     (output-phrase :accessor output-phrase :initarg :output-phrase :initform nil :documentation "The selected phrase")
     (output-period :accessor output-period :initarg :output-period :initform nil :documentation "The selected period")
+    (melody :accessor melody :initarg :melody :initform nil :documentation "The final melody produced by the object")
     ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
   )
   (:icon 1)
@@ -425,6 +426,52 @@
                           )
             )
           )
+
+          ; button to add the selected solution to the list of phrases
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 115 170) ; position
+            (om::om-make-point 100 20) ; size
+            "Add to phrases"
+            :di-action #'(lambda (b)
+                          (if (typep (output-solution (om::object self)) 'null); if there is no solution to add
+                            (error "There is no phrase to keep.")
+                          )
+                          (if (typep (phrases-list (om::object self)) 'null); if it's the first phrase
+                            (setf (phrases-list (om::object self)) (list (output-solution (om::object self)))); initialize the list
+                            (nconc (phrases-list (om::object self)) (list (output-solution (om::object self)))); add it to the end
+                          )
+                          (progn
+                            (update-pop-up self solution-assembly-panel (phrases-list (om::object self)) (om::om-make-point 5 230) (om::om-make-point 320 20)); update the pop-up menu
+                            (oa::om-invalidate-view self)
+                            ;(print "updated solutions")
+                          )
+
+            )
+          )
+
+          ; button to add the selected solution to the list of periods
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 225 170)
+            (om::om-make-point 100 20)
+            "Add to periods"
+            :di-action #'(lambda (b)
+                          (if (typep (output-solution (om::object self)) 'null); if there is no solution to add
+                            (error "There is no period to keep.")
+                          )
+                          (if (typep (periods-list (om::object self)) 'null); if it's the first phrase
+                            (setf (periods-list (om::object self)) (list (output-solution (om::object self)))); initialize the list
+                            (nconc (periods-list (om::object self)) (list (output-solution (om::object self)))); add it to the end
+                          )
+                          (progn
+                            (update-pop-up self solution-assembly-panel (periods-list (om::object self)) (om::om-make-point 5 330) (om::om-make-point 320 20)); update the pop-up menu
+                            (oa::om-invalidate-view self)
+                            ;(print "updated solutions")
+                          )
+
+            )
+          )
         )
       )
 
@@ -778,7 +825,7 @@
             "Motif selection"
             :range (motives-list (om::object self))
             :di-action #'(lambda (m)
-              (setf (output-motif (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output to the selected solution
+              (setf (output-motif (om::object self)) (nth (om::om-get-selected-item-index m) (motives-list (om::object self)))); set the output to the selected solution
             )
           )
 
@@ -791,7 +838,88 @@
             :font om::*om-default-font1*
           )
 
+          ; pop-up list to select the desired phrase
+          (om::om-make-dialog-item
+            'om::pop-up-menu
+            (om::om-make-point 5 230)
+            (om::om-make-point 320 20)
+            "Phrase selection"
+            :range (phrases-list (om::object self))
+            :di-action #'(lambda (m)
+              (setf (output-phrase (om::object self)) (nth (om::om-get-selected-item-index m) (phrases-list (om::object self)))); set the output to the selected solution
+            )
+          )
 
+          ; name for the pop-up list
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 5 210) 
+            (om::om-make-point 200 20) 
+            "Phrases"
+            :font om::*om-default-font1*
+          )
+
+          ; pop-up list to select the desired period
+          (om::om-make-dialog-item
+            'om::pop-up-menu
+            (om::om-make-point 5 330)
+            (om::om-make-point 320 20)
+            "Period selection"
+            :range (periods-list (om::object self))
+            :di-action #'(lambda (m)
+              (setf (output-period (om::object self)) (nth (om::om-get-selected-item-index m) (periods-list (om::object self)))); set the output to the selected solution
+            )
+          )
+
+          ; name for the pop-up list
+          (om::om-make-dialog-item 
+            'om::om-static-text 
+            (om::om-make-point 5 310) 
+            (om::om-make-point 200 20) 
+            "Phrases"
+            :font om::*om-default-font1*
+          )
+
+          ;button to show the melody
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 5 430)
+            (om::om-make-point 300 20)
+            "Show melody"
+            :di-action #'(lambda (b)
+                          (if (typep (melody (om::object self)) 'null); if there is no melody yet
+                            (error "There is no melody currently.")
+                          )
+                          (om::openeditorframe ; open a voice window displaying the input chords
+                            (om::omNG-make-new-instance 
+                              (melody (om::object self))
+                              "melody" ; name of the window
+                            )
+                          )
+            )
+          )
+
+          ; button to add before the current melody
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 5 460)
+            (om::om-make-point 150 20)
+            "Add before current melody"
+            :di-action #'(lambda (b)
+              (print "TODO")
+            )
+          )
+
+          ; button to add after the current melody
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 155 460)
+            (om::om-make-point 150 20)
+            "Add after current melody"
+            :di-action #'(lambda (b)
+              (print "TODO")
+            )
+          )
 
         )
       )
