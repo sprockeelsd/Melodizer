@@ -285,6 +285,29 @@
             )
           )
 
+          ; button to see the selected solution from the ones we keep with the input chords
+
+          (om::om-make-dialog-item 
+            'om::om-button
+            (om::om-make-point 330 130)
+            (om::om-make-point 100 20)
+            "See with chords"
+            :di-action #'(lambda (b)
+                          (om::openeditorframe ; open the editor of the selected solution
+                            (om::omNG-make-new-instance 
+                              (make-instance 
+                                'poly ; the selected voice object a poly with the solution and the input chords
+                                :voices (list 
+                                  (output-solution (om::object self))
+                                  (input-chords (om::object self))
+                                )
+                              )
+                              (format nil "solution"); name of the window
+                            )
+                          )
+            )
+          )
+
           ; button to start or restart the search
           (om::om-make-dialog-item 
             'om::om-button
@@ -838,6 +861,31 @@
             :font om::*om-default-font1*
           )
 
+          ; button to add before the current melody
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 5 150)
+            (om::om-make-point 150 20)
+            "Add before current melody"
+            :di-action #'(lambda (b)
+                          (if (typep (melody (om::object self)) 'null); if there is no melody yet
+                            (setf (melody (om::object self)) (output-motif (om::object self)))
+                            (setf (melody (om::object self)) (om::concat (output-motif (om::object self)) (melody (om::object self))))
+                          )
+            )
+          )
+
+          ; button to add after the current melody
+          (om::om-make-dialog-item
+            'om::om-button
+            (om::om-make-point 155 150)
+            (om::om-make-point 150 20)
+            "Add after current melody"
+            :di-action #'(lambda (b)
+              (print "TODO")
+            )
+          )
+
           ; pop-up list to select the desired phrase
           (om::om-make-dialog-item
             'om::pop-up-menu
@@ -899,27 +947,7 @@
             )
           )
 
-          ; button to add before the current melody
-          (om::om-make-dialog-item
-            'om::om-button
-            (om::om-make-point 5 460)
-            (om::om-make-point 150 20)
-            "Add before current melody"
-            :di-action #'(lambda (b)
-              (print "TODO")
-            )
-          )
-
-          ; button to add after the current melody
-          (om::om-make-dialog-item
-            'om::om-button
-            (om::om-make-point 155 460)
-            (om::om-make-point 150 20)
-            "Add after current melody"
-            :di-action #'(lambda (b)
-              (print "TODO")
-            )
-          )
+          
 
         )
       )
