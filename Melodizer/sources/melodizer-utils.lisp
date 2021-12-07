@@ -44,13 +44,7 @@
                             (let ((indx (om::om-get-selected-item-index m)))
                                 (om::openeditorframe
                                     (om::omNG-make-new-instance
-                                        (make-instance 
-                                            'poly ; the selected voice object a poly with the solution and the input chords
-                                            :voices (list 
-                                                (output-motif (om::object self))
-                                                (input-chords (om::object self))
-                                            )
-                                        )
+                                        (output-motif (om::object self))
                                         (format nil "motif ~D" (1+ indx)); name of the window
                                     )
                                 )
