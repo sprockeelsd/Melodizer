@@ -569,7 +569,6 @@
                       (oa::om-invalidate-view editor)
                       ;(print "updated solutions")
                     )
-
       )
     )
 
@@ -974,6 +973,34 @@
       :font om::*om-default-font1*
     )
 
+    ;button to add a phrase before the current melody
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 5 250)
+      (om::om-make-point 150 20)
+      "Add before current melody"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody yet
+                      (setf (melody (om::object editor)) (output-phrase (om::object editor)))
+                      (setf (melody (om::object editor)) (om::concat (output-phrase (om::object editor)) (melody (om::object editor))))
+                    )
+      )
+    )
+
+    ;button to add  phrase after the current melody
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 155 250)
+      (om::om-make-point 150 20)
+      "Add before current melody"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody yet
+                      (setf (melody (om::object editor)) (output-phrase (om::object editor)))
+                      (setf (melody (om::object editor)) (om::concat (melody (om::object editor)) (output-phrase (om::object editor))))
+                    )
+      )
+    )
+
     ; pop-up list to select the desired period
     (om::om-make-dialog-item
       'om::pop-up-menu
@@ -999,7 +1026,7 @@
     (om::om-make-dialog-item
       'om::om-button
       (om::om-make-point 5 430)
-      (om::om-make-point 300 20)
+      (om::om-make-point 400 20)
       "Show melody"
       :di-action #'(lambda (b)
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
@@ -1013,6 +1040,39 @@
                     )
       )
     )
+
+    ;button to save the melody as a phrase
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 5 455)
+      (om::om-make-point 197 20)
+      "Save as phrase"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody to add
+                      (error "There is no melody to keep.")
+                    )
+                    (if (typep (phrases-list (om::object editor)) 'null); if it's the first phrase
+                      (setf (phrases-list (om::object editor)) (list (melody (om::object editor)))); initialize the list
+                      (nconc (phrases-list (om::object editor)) (list (melody (om::object editor)))); add it to the end
+                    )
+                    (progn
+                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
+                      (oa::om-invalidate-view editor)
+                    )
+      )
+    )
+
+    ; button to reset the melody
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 5 480)
+      (om::om-make-point 400 20)
+      "Reset melody"
+      :di-action #'(lambda (b)
+        (setf (melody (om::object editor)) nil)
+      )
+    )
+
   )
 )
 

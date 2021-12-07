@@ -50,6 +50,17 @@
                                 )
                             )
                         )
+                        ((string-equal output "output-phrase")
+                            (setf (output-phrase (om::object self)) (nth (om::om-get-selected-item-index m) data))
+                            (let ((indx (om::om-get-selected-item-index m)))
+                                (om::openeditorframe
+                                    (om::omNG-make-new-instance
+                                        (output-phrase (om::object self))
+                                        (format nil "phrase ~D" (1+ indx)); name of the window
+                                    )
+                                )
+                            )
+                        )
                     )
       )
     )
