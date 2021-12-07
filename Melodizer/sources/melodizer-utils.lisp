@@ -17,7 +17,7 @@
 )
 
 ; function to update the list of solutions in the pop-up menu without having to close and re-open the window
-(defun update-pop-up (self my-panel data position size)
+(defun update-pop-up (self my-panel data position size output)
   (om::om-add-subviews my-panel
     (om::om-make-dialog-item 
       'om::om-pop-up-dialog-item 
@@ -27,14 +27,35 @@
       :range (loop for item in (make-data-sol data) collect (car item))
       ;:value (mode (object self)); change so it goes to the newest added solution? 
       :di-action #'(lambda (m)
-                    (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) (solutions-list (om::object self)))); set the output solution to the currently selected solution
-                    (let ((indx (om::om-get-selected-item-index m)))
-                      (om::openeditorframe ; open the editor of the selected solution
-                        (om::omNG-make-new-instance 
-                            (nth indx data) 
-                            (format nil "melody ~D" (1+ indx)); name of the window
+                    (cond 
+                        ((string-equal output "output-solution")
+                            (setf (output-solution (om::object self)) (nth (om::om-get-selected-item-index m) data)); set the output solution to the currently selected solution
+                            (let ((indx (om::om-get-selected-item-index m)))
+                                (om::openeditorframe ; open the editor of the selected solution
+                                    (om::omNG-make-new-instance 
+                                        (nth indx data)
+                                        (format nil "melody ~D" (1+ indx)); name of the window
+                                    )
+                                )
+                            )
                         )
-                      )
+                        ((string-equal output "output-motif")
+                            (setf (output-motif (om::object self)) (nth (om::om-get-selected-item-index m) data))
+                            (let ((indx (om::om-get-selected-item-index m)))
+                                (om::openeditorframe
+                                    (om::omNG-make-new-instance
+                                        (make-instance 
+                                            'poly ; the selected voice object a poly with the solution and the input chords
+                                            :voices (list 
+                                                (output-motif (om::object self))
+                                                (input-chords (om::object self))
+                                            )
+                                        )
+                                        (format nil "motif ~D" (1+ indx)); name of the window
+                                    )
+                                )
+                            )
+                        )
                     )
       )
     )

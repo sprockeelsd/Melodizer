@@ -410,7 +410,7 @@
                     (setf (solutions-list (om::object editor)) '())
                     (setf (solution (om::object editor)) nil)
                     (progn
-                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20))
+                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-solution")
                       (oa::om-invalidate-view editor)
                     )
                     ; reset the boolean that tells wether we want to stop the search or not
@@ -509,7 +509,7 @@
                       (nconc (solutions-list (om::object editor)) (list (solution (om::object editor)))); add it to the end
                     )   
                     (progn
-                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20)); update the pop-up menu with the list of the solutions selected by the user
+                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-solution"); update the pop-up menu with the list of the solutions selected by the user
                       (oa::om-invalidate-view editor)
                       ;(print "updated solutions")
                     )
@@ -531,7 +531,7 @@
                       (nconc (motives-list (om::object editor)) (list (output-solution (om::object editor)))); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (motives-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20)); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (motives-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                       ;(print "updated solutions")
                     )
@@ -553,7 +553,7 @@
                       (nconc (phrases-list (om::object editor)) (list (output-solution (om::object editor)))); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20)); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                       ;(print "updated solutions")
                     )
@@ -576,7 +576,7 @@
                       (nconc (periods-list (om::object editor)) (list (output-solution (om::object editor)))); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20)); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-period"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                       ;(print "updated solutions")
                     )
