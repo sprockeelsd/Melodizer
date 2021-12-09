@@ -16,7 +16,7 @@
     )
 )
 
-; function to update the list of solutions in the pop-up menu without having to close and re-open the window
+; function to update the list of solutions in a pop-up menu without having to close and re-open the window
 (defun update-pop-up (self my-panel data position size output)
   (om::om-add-subviews my-panel
     (om::om-make-dialog-item 

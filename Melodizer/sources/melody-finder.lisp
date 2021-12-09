@@ -1096,6 +1096,34 @@
       :font om::*om-default-font1*
     )
 
+    ; button to add a period before the current melody
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 5 350)
+      (om::om-make-point 150 20)
+      "Add before current melody"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody yet
+                      (setf (melody (om::object editor)) (output-period (om::object editor)))
+                      (setf (melody (om::object editor)) (om::concat (output-period (om::object editor)) (melody (om::object editor))))
+                    )
+      )
+    )
+
+    ; button to add a period after the current melody
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 155 350)
+      (om::om-make-point 150 20)
+      "Add after current melody"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody yet
+                      (setf (melody (om::object editor)) (output-period (om::object editor)))
+                      (setf (melody (om::object editor)) (om::concat (melody (om::object editor)) (output-period (om::object editor))))
+                    )
+      )
+    )
+
     ;button to reset the list of periods
     (om::om-make-dialog-item
       'om::om-button
@@ -1145,6 +1173,27 @@
                     )
                     (progn
                       (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
+                      (oa::om-invalidate-view editor)
+                    )
+      )
+    )
+
+    ; button to save the melody as a period
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 207 455)
+      (om::om-make-point 197 20)
+      "Save as period"
+      :di-action #'(lambda (b)
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody to add
+                      (error "There is no melody to keep.")
+                    )
+                    (if (typep (periods-list (om::object editor)) 'null); if it's the first period
+                      (setf (periods-list (om::object editor)) (list (melody (om::object editor)))); initialize the list
+                      (nconc (periods-list (om::object editor)) (list (melody (om::object editor)))); add it to the end
+                    )
+                    (progn
+                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-period"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                     )
       )
