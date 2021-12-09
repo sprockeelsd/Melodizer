@@ -595,8 +595,20 @@
                       (error "There is no period to keep.")
                     )
                     (if (typep (periods-list (om::object editor)) 'null); if it's the first phrase
-                      (setf (periods-list (om::object editor)) (list (output-solution (om::object editor)))); initialize the list
-                      (nconc (periods-list (om::object editor)) (list (output-solution (om::object editor)))); add it to the end
+                      (setf (periods-list (om::object editor)) 
+                        (list 
+                          (make-instance 'poly 
+                            :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
+                          )
+                        ); initialize the list
+                      )    
+                      (nconc (periods-list (om::object editor)) 
+                        (list 
+                          (make-instance 'poly 
+                            :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
+                          )
+                        ); initialize the list
+                      ); add it to the end 
                     )
                     (progn
                       (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-period"); update the pop-up menu
@@ -923,8 +935,16 @@
       "Motif selection"
       :range (motives-list (om::object editor))
       :di-action #'(lambda (m)
-        (setf (output-motif (om::object editor)) (nth (om::om-get-selected-item-index m) (motives-list (om::object editor)))); set the output to the selected solution
-      )
+                    (setf (output-motif (om::object editor)) (nth (om::om-get-selected-item-index m) (motives-list (om::object editor)))); set the output to the selected solution
+                    (let ((indx (om::om-get-selected-item-index m)))
+                        (om::openeditorframe ; open the editor of the selected solution
+                            (om::omNG-make-new-instance 
+                                (output-motif (om::object editor))
+                                (format nil "motif ~D" (1+ indx)); name of the window
+                            )
+                        )
+                    )
+        )
     )
 
     ; name for the pop-up list
@@ -964,6 +984,19 @@
       )
     )
 
+    ;button to reset the list of motives
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 325 130)
+      (om::om-make-point 100 20)
+      "Reset"
+      :di-action #'(lambda (b)
+                    (setf (motives-list (om::object editor)) nil)
+                    (setf (output-motif (om::object editor)) nil)
+                    (update-pop-up editor solution-assembly-panel (motives-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+      )
+    )
+
     ; pop-up list to select the desired phrase
     (om::om-make-dialog-item
       'om::pop-up-menu
@@ -972,7 +1005,15 @@
       "Phrase selection"
       :range (phrases-list (om::object editor))
       :di-action #'(lambda (m)
-        (setf (output-phrase (om::object editor)) (nth (om::om-get-selected-item-index m) (phrases-list (om::object editor)))); set the output to the selected solution
+                    (setf (output-phrase (om::object editor)) (nth (om::om-get-selected-item-index m) (phrases-list (om::object editor)))); set the output to the selected solution
+                    (let ((indx (om::om-get-selected-item-index m)))
+                      (om::openeditorframe
+                          (om::omNG-make-new-instance
+                              (output-phrase (om::object editor))
+                              (format nil "phrase ~D" (1+ indx)); name of the window
+                          )
+                      )
+                    )
       )
     )
 
@@ -1013,6 +1054,19 @@
       )
     )
 
+    ;button to reset the list of phrases
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 325 230)
+      (om::om-make-point 100 20)
+      "Reset"
+      :di-action #'(lambda (b)
+                    (setf (phrases-list (om::object editor)) nil)
+                    (setf (output-phrase (om::object editor)) nil)
+                    (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+      )
+    )
+
     ; pop-up list to select the desired period
     (om::om-make-dialog-item
       'om::pop-up-menu
@@ -1021,7 +1075,15 @@
       "Period selection"
       :range (periods-list (om::object editor))
       :di-action #'(lambda (m)
-        (setf (output-period (om::object editor)) (nth (om::om-get-selected-item-index m) (periods-list (om::object editor)))); set the output to the selected solution
+                    (setf (output-period (om::object editor)) (nth (om::om-get-selected-item-index m) (periods-list (om::object editor)))); set the output to the selected solution
+                    (let ((indx (om::om-get-selected-item-index m)))
+                      (om::openeditorframe
+                          (om::omNG-make-new-instance
+                              (output-period (om::object editor))
+                              (format nil "period ~D" (1+ indx))
+                          )
+                      )
+                    )
       )
     )
 
@@ -1030,8 +1092,22 @@
       'om::om-static-text 
       (om::om-make-point 5 310) 
       (om::om-make-point 200 20) 
-      "Phrases"
+      "Periods"
       :font om::*om-default-font1*
+    )
+
+    ;button to reset the list of periods
+    (om::om-make-dialog-item
+      'om::om-button
+      (om::om-make-point 325 330)
+      (om::om-make-point 100 20)
+      "Reset"
+      :di-action #'(lambda (b)
+                    (setf (periods-list (om::object editor)) nil)
+                    (setf (output-period (om::object editor)) nil)
+                    (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+
+      )
     )
 
     ;button to show the melody

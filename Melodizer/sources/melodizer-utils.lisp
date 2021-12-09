@@ -61,6 +61,17 @@
                                 )
                             )
                         )
+                        ((string-equal output "output-period")
+                            (setf (output-period (om::object self)) (nth (om::om-get-selected-item-index m) data))
+                            (let ((indx (om::om-get-selected-item-index m)))
+                                (om::openeditorframe
+                                    (om::omNG-make-new-instance
+                                        (output-period (om::object self))
+                                        (format nil "period ~D" (1+ indx))
+                                    )
+                                )
+                            )
+                        )
                     )
       )
     )
