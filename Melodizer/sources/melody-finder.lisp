@@ -381,6 +381,9 @@
       (om::om-make-point 100 20)
       "See with chords"
       :di-action #'(lambda (b)
+                    (if (typep (solution (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no solution. Start the search to find solutions.")
+                    )
                     (om::openeditorframe ; open the editor of the selected solution
                       (om::omNG-make-new-instance 
                         (make-instance 
@@ -443,6 +446,9 @@
       (om::om-make-point 100 20) ; size
       "Next"
       :di-action #'(lambda (b)
+                    (if (typep (result (om::object editor)) 'null); if the problem is not initialized
+                      (error "The problem has not been initialized. Please set the input and press Start.")
+                    )
                     (print "Searching for the next solution")
                     ;reset the boolean because we want to continue the search
                     (setf (stop-search (om::object editor)) nil)
@@ -483,7 +489,9 @@
       (om::om-make-point 160 20); size
       "See solution"
       :di-action #'(lambda (b)
-                      ;(print (solution (om::object editor)))
+                    (if (typep (solution (om::object editor)) 'null); if there is no solution
+                      (error "There is no solution. Start the search to find solutions.")
+                    )
                       (om::openeditorframe ; open a voice window displaying the selected solution
                         (om::omNG-make-new-instance 
                           (solution (om::object editor)); the last solution
