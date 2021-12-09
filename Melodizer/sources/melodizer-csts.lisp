@@ -109,17 +109,6 @@
         (dolist (interval intervals);restrain the interval domains to acceptable values 
             (gil::g-dom sp interval valid-intervals)
         )
-        (loop :for j :from 0 :below (length intervals) :do ;for each interval
-            (let (temp)
-                (setq temp (gil::add-int-var-array sp 3 -12 108)); temporary variables to make it easier to apply the linear constraint
-
-                (gil::g-rel sp (first temp) gil::IRT_EQ (nth j notes)); temp[0] = notes[j]
-                (gil::g-rel sp (second temp) gil::IRT_EQ (nth (+ j 1) notes)); temp[1] = notes[j+1]
-                (gil::g-rel sp (third temp) gil::IRT_EQ (nth j intervals)); temp[2] = intervals[j]
-
-                (gil::g-linear sp '(-1 1 -1) temp gil::IRT_EQ 0); -notes[j] + notes[j+1] - intervals[j] = 0
-            )
-        )
     )
 )
 

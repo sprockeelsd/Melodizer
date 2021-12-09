@@ -19,11 +19,23 @@
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
 
+        ; connect pitches to intervals
+        (loop :for j :from 0 :below (length intervals) :do ;for each interval
+            (let (temp)
+                (setq temp (gil::add-int-var-array sp 3 -12 108)); temporary variables to make it easier to apply the linear constraint
+
+                (gil::g-rel sp (first temp) gil::IRT_EQ (nth j pitch)); temp[0] = pitch[j]
+                (gil::g-rel sp (second temp) gil::IRT_EQ (nth (+ j 1) pitch)); temp[1] = pitch[j+1]
+                (gil::g-rel sp (third temp) gil::IRT_EQ (nth j intervals)); temp[2] = intervals[j]
+
+                (gil::g-linear sp '(-1 1 -1) temp gil::IRT_EQ 0); -pitch[j] + pitch[j+1] - intervals[j] = 0
+            )
+        )
+
         ; then, post the constraints
 
         ; mandatory constraints
 
-        ; cannot be removed, otherwise the intervals variable array has no meaning, it is not connected to pitch
         (interval-between-adjacent-notes sp pitch intervals)
 
         (in-tonality sp pitch key mode)
