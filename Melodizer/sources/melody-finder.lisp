@@ -189,7 +189,7 @@
     editor
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 350 2) 
+      (om::om-make-point 650 2) 
       (om::om-make-point 120 20) 
       "Melodizer"
       :font om::*om-default-font3b*
@@ -561,8 +561,20 @@
                       (error "There is no phrase to keep.")
                     )
                     (if (typep (phrases-list (om::object editor)) 'null); if it's the first phrase
-                      (setf (phrases-list (om::object editor)) (list (output-solution (om::object editor)))); initialize the list
-                      (nconc (phrases-list (om::object editor)) (list (output-solution (om::object editor)))); add it to the end
+                      (setf (phrases-list (om::object editor)) 
+                        (list 
+                          (make-instance 'poly 
+                            :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
+                          )
+                        ); initialize the list
+                      )                      
+                      (nconc (phrases-list (om::object editor)) 
+                        (list 
+                          (make-instance 'poly 
+                            :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
+                          )
+                        ); initialize the list
+                      ); add it to the end                    
                     )
                     (progn
                       (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
@@ -992,7 +1004,7 @@
       'om::om-button
       (om::om-make-point 155 250)
       (om::om-make-point 150 20)
-      "Add before current melody"
+      "Add after current melody"
       :di-action #'(lambda (b)
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-phrase (om::object editor)))
