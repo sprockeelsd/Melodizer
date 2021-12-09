@@ -971,6 +971,9 @@
       (om::om-make-point 150 20)
       "Add before current melody"
       :di-action #'(lambda (b)
+                    (if (typep (output-motif (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no motif to add.")
+                    )
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-motif (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (output-motif (om::object editor)) (melody (om::object editor))))
@@ -985,7 +988,10 @@
       (om::om-make-point 150 20)
       "Add after current melody"
       :di-action #'(lambda (b)
-        (if (typep (melody (om::object editor)) 'null); if there is no melody yet
+                    (if (typep (output-motif (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no motif to add.")
+                    )
+                    (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-motif (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (melody (om::object editor)) (output-motif (om::object editor))))
                     )
@@ -1041,6 +1047,9 @@
       (om::om-make-point 150 20)
       "Add before current melody"
       :di-action #'(lambda (b)
+                    (if (typep (output-phrase (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no phrase to add.")
+                    )
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-phrase (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (output-phrase (om::object editor)) (melody (om::object editor))))
@@ -1055,6 +1064,9 @@
       (om::om-make-point 150 20)
       "Add after current melody"
       :di-action #'(lambda (b)
+                    (if (typep (output-phrase (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no phrase to add.")
+                    )
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-phrase (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (melody (om::object editor)) (output-phrase (om::object editor))))
@@ -1111,6 +1123,9 @@
       (om::om-make-point 150 20)
       "Add before current melody"
       :di-action #'(lambda (b)
+                    (if (typep (output-period (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no period to add.")
+                    )
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-period (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (output-period (om::object editor)) (melody (om::object editor))))
@@ -1125,6 +1140,9 @@
       (om::om-make-point 150 20)
       "Add after current melody"
       :di-action #'(lambda (b)
+                    (if (typep (output-period (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no period to add.")
+                    )
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
                       (setf (melody (om::object editor)) (output-period (om::object editor)))
                       (setf (melody (om::object editor)) (om::concat (melody (om::object editor)) (output-period (om::object editor))))
