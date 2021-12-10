@@ -50,9 +50,9 @@
         (post-optional-constraints optional-constraints sp pitch intervals global-interval)
         
         ; branching
-        ;(gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_MIN)
-        (gil::g-branch sp pitch gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
-        ;(gil::g-branch sp pitch gil::INT_VAR_RND gil::INT_VAL_RND)
+        (gil::g-branch sp pitch gil::INT_VAR_DEGREE_MAX gil::INT_VAL_RND)
+
+        (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MAX)
 
         ;time stop
         (setq tstop (gil::t-stop)); create the time stop object

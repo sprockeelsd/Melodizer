@@ -164,7 +164,6 @@
             (decf note (nth (- (- (length scale) 1) i) scale)); note = note - scale[6-i mod 6]
             (incf i 1); i++
         )
-        (print admissible-notes)
         admissible-notes
     )
 )

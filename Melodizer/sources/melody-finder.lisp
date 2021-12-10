@@ -381,8 +381,8 @@
       (om::om-make-point 100 20)
       "See with chords"
       :di-action #'(lambda (b)
-                    (if (typep (solution (om::object editor)) 'null); if there is no solution to add
-                      (error "There is no solution. Start the search to find solutions.")
+                    (if (typep (output-solution (om::object editor)) 'null); if there is no solution to add
+                      (error "There is no selected solution.")
                     )
                     (om::openeditorframe ; open the editor of the selected solution
                       (om::omNG-make-new-instance 
