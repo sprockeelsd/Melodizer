@@ -18,7 +18,7 @@
     (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
     (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
     (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of all the solutions saved by the user.")
-    (motives-list :accessor motives-list :initarg :motives-list :initform '() :documentation "The list of motives created by the user")
+    (motifs-list :accessor motifs-list :initarg :motifs-list :initform '() :documentation "The list of motifs created by the user")
     (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation "The list of phrases created by the user")
     (periods-list :accessor periods-list :initarg :periods-list :initform '() :documentation "The list of periodes created by the user")
     (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
@@ -49,11 +49,11 @@
   )
 )
 
-; To access the melodizer object, (object self)
+; To access the melodizer object, (om::object self)
 
 (defmethod initialize-instance ((self melodizer-editor) &rest args)
   ;;; do what needs to be done by default
-  (call-next-method) ; start the search by default?, calculate the list of fundamentals, seconds,...
+  (call-next-method) ; start the search by default?
   (make-my-interface self)
 )
 
@@ -99,6 +99,7 @@
       ;;; setting the different sub-panels for additional constraints ;;;
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+      ; coordinates are local to the constraints-panel
       (general-constraints-panel
         (om::om-make-view
           'om::om-view
@@ -176,7 +177,7 @@
 
 
     ;;;;;;;;;;;;;;;;;
-    ;;; main view ;;;
+    ;;; main view ;;;     final positions done
     ;;;;;;;;;;;;;;;;;
 
 ; this function creates the elements for the main panel
@@ -198,7 +199,7 @@
 )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; creating the input panel ;;;
+    ;;; creating the input panel ;;;    final positions done
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;this function creates all the elements of the input-panel (buttons, pop-up-menus,...)
@@ -210,7 +211,7 @@
     ; title
     (om::om-make-dialog-item 
        'om::om-static-text 
-      (om::om-make-point 140 2) 
+      (om::om-make-point 187 2) 
       (om::om-make-point 120 20) 
       "Parameters"
       :font om::*om-default-font1b*
@@ -219,13 +220,12 @@
     ;pop-up list to select the mode of the tool (melodizer, accompagnement finder, ...)
     (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om::om-make-point 5 25) 
+      (om::om-make-point 15 30) 
       (om::om-make-point 200 20) 
       "Tool Mode selection"
       :value(tool-mode (om::object editor))
-      :range '("Melody-Finder" "Motif Maker" "Phrase Maker" "Period Maker")
-      :di-action #'(lambda (m) ; TODO reset all additional constraints that are not general
-                    ;(print (nth (om-get-selected-item-index m) (om-get-item-list m))); display the selected option
+      :range '("Melody-Finder" "Variation maker")
+      :di-action #'(lambda (m)
                     (setf (tool-mode (om::object editor)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m))) ; set the tool-mode according to the choice of the user
       ) 
     )
@@ -233,7 +233,7 @@
     ;pop-up list to select the key of the melody
     (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om::om-make-point 5 60) 
+      (om::om-make-point 15 75) 
       (om::om-make-point 200 20) 
       "Key selection"
       :range '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")
@@ -246,7 +246,7 @@
     ;pop-up list to select the mode of the melody
     (om::om-make-dialog-item 
       'om::pop-up-menu 
-      (om::om-make-point 5 85) 
+      (om::om-make-point 15 105) 
       (om::om-make-point 200 20) 
       "Mode selection"
       :range '("ionian (major)" "dorian" "phrygian" "lydian" "mixolydian" "aeolian (natural minor)" "locrian" "pentatonic" "harmonic minor" "chromatic")
@@ -259,7 +259,7 @@
     ;button to edit the input chords
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 200 60)
+      (om::om-make-point 240 71)
       (om::om-make-point 200 20)
       "Edit input chords"
       :di-action #'(lambda (b)
@@ -275,7 +275,7 @@
     ;button to edit the input rhythm
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 200 85)
+      (om::om-make-point 240 101)
       (om::om-make-point 200 20)
       "Edit melody rhythm"
       :di-action #'(lambda (b)
@@ -291,7 +291,7 @@
     ;text for the slider
     (om::om-make-dialog-item
       'om::om-static-text 
-      (om::om-make-point 10 115) 
+      (om::om-make-point 161 150) 
       (om::om-make-point 200 20) 
       "Variety of the solutions"
       :font om::*om-default-font1*
@@ -300,7 +300,7 @@
     ; slider to express how different the solutions should be (100 = completely different, 1 = almost no difference)
     (om::om-make-dialog-item
       'om::om-slider
-      (om::om-make-point 5 135) ; position
+      (om::om-make-point 123 170) ; position
       (om::om-make-point 200 20) ; size
       "Slider"
       :range '(1 100)
@@ -325,7 +325,7 @@
     ; button to reset the input 
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 200 25)
+      (om::om-make-point 122 250)
       (om::om-make-point 200 20)
       "Reset input"
       :di-action #'(lambda (b)
@@ -341,7 +341,7 @@
 )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; creating the search panel ;;;
+    ;;; creating the search panel ;;;   final positions done
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;this function creates all the elements of the search-panel (buttons, pop-up-menus,...)
@@ -353,7 +353,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 190 2) 
+      (om::om-make-point 205 2) 
       (om::om-make-point 120 20) 
       "Search"
       :font om::*om-default-font1b*
@@ -364,8 +364,8 @@
     ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-pop-up function
     (om::om-make-dialog-item
       'om::pop-up-menu
-      (om::om-make-point 5 130)
-      (om::om-make-point 320 20)
+      (om::om-make-point 18 130)
+      (om::om-make-point 262 20)
       "Solution selection"
       :range (solutions-list (om::object editor))
       :di-action #'(lambda (m)
@@ -377,8 +377,8 @@
 
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 330 130)
-      (om::om-make-point 100 20)
+      (om::om-make-point 285 126)
+      (om::om-make-point 150 20)
       "See with chords"
       :di-action #'(lambda (b)
                     (if (typep (output-solution (om::object editor)) 'null); if there is no solution to add
@@ -402,18 +402,15 @@
     ; button to start or restart the search
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 5 50) ; position (horizontal, vertical)
-      (om::om-make-point 100 20) ; size (horizontal, vertical)
+      (om::om-make-point 15 50) ; position (horizontal, vertical)
+      (om::om-make-point 130 20) ; size (horizontal, vertical)
       "Start"
       :di-action #'(lambda (b) 
-                    ;(dolist (e (chords (input-chords (object editor))))
-                    ;  (print (lmidic e))
-                    ;)
                     ; reset the solutions for the new search
                     (setf (solutions-list (om::object editor)) '())
                     (setf (solution (om::object editor)) nil)
                     (progn
-                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-solution")
+                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 18 130) (om::om-make-point 262 20) "output-solution")
                       (oa::om-invalidate-view editor)
                     )
                     ; reset the boolean that tells wether we want to stop the search or not
@@ -426,13 +423,7 @@
                           (setf (result (om::object editor)) init); store the result of the call to melody finder
                         )
                       )
-                      ((string-equal (tool-mode (om::object editor)) "Motif Maker")
-                        (print "This mode is not supported yet")
-                      )
-                      ((string-equal (tool-mode (om::object editor)) "Phrase Maker")
-                        (print "This mode is not supported yet")
-                      )
-                      ((string-equal (tool-mode (om::object editor)) "Period Maker")
+                      ((string-equal (tool-mode (om::object editor)) "Variation maker")
                         (print "This mode is not supported yet")
                       )
                     )
@@ -442,8 +433,8 @@
     ; button to find the next solution
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 115 50) ; position
-      (om::om-make-point 100 20) ; size
+      (om::om-make-point 160 50) ; position
+      (om::om-make-point 130 20) ; size
       "Next"
       :di-action #'(lambda (b)
                     (if (typep (result (om::object editor)) 'null); if the problem is not initialized
@@ -474,8 +465,8 @@
     ; button to stop the search if the user wishes to
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 225 50)
-      (om::om-make-point 100 20)
+      (om::om-make-point 305 50)
+      (om::om-make-point 130 20)
       "Stop"
       :di-action #'(lambda (b)
         (setf (stop-search (om::object editor)) t) ; set the boolean to true so when the timestop object tells the search engine it stopped, it can check and see the user stopped the search
@@ -485,8 +476,8 @@
     ; button to open the voice object editor of the current solution
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 90); position
-      (om::om-make-point 160 20); size
+      (om::om-make-point 15 90); position
+      (om::om-make-point 202 20); size
       "See solution"
       :di-action #'(lambda (b)
                     (if (typep (solution (om::object editor)) 'null); if there is no solution
@@ -504,8 +495,8 @@
     ;button to add the solution to the list of solutions (if we find it interesting and want to keep it)
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 165 90) ; position
-      (om::om-make-point 160 20) ; size
+      (om::om-make-point 233 90) ; position
+      (om::om-make-point 202 20) ; size
       "Keep Solution"
       :di-action #'(lambda (b)
                     (if (typep (solution (om::object editor)) 'null); if there is no solution to add
@@ -517,43 +508,41 @@
                       (nconc (solutions-list (om::object editor)) (list (solution (om::object editor)))); add it to the end
                     )   
                     (progn
-                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-solution"); update the pop-up menu with the list of the solutions selected by the user
+                      (update-pop-up editor search-panel (solutions-list (om::object editor)) (om::om-make-point 18 130) (om::om-make-point 262 20) "output-solution"); update the pop-up menu with the list of the solutions selected by the user
                       (oa::om-invalidate-view editor)
-                      ;(print "updated solutions")
                     )
       )
     )
 
-    ; button add the selected solution to the list of motives
+    ; button add the selected solution to the list of motifs
     (om::om-make-dialog-item 
       'om::om-button
-      (om::om-make-point 5 170) ; position (horizontal, vertical)
-      (om::om-make-point 100 20) ; size (horizontal, vertical)
-      "Add to motives"
+      (om::om-make-point 15 170) ; position (horizontal, vertical)
+      (om::om-make-point 130 20) ; size (horizontal, vertical)
+      "Add to motifs"
       :di-action #'(lambda (b) 
                     (if (typep (output-solution (om::object editor)) 'null); if there is no solution to add
                       (error "There is no motif to keep.")
                     )
-                    (if (typep (motives-list (om::object editor)) 'null); if it's the first motif
-                      (setf (motives-list (om::object editor)) 
+                    (if (typep (motifs-list (om::object editor)) 'null); if it's the first motif
+                      (setf (motifs-list (om::object editor)) 
                         (list 
                           (make-instance 'poly 
                             :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
                           )
                         ); initialize the list
                       )
-                      (nconc (motives-list (om::object editor)) 
+                      (nconc (motifs-list (om::object editor)) 
                         (list 
                           (make-instance 'poly 
                             :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
                           )
-                        ); initialize the list
+                        ); create a list containing the new motif
                       ); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (motives-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (motifs-list (om::object editor)) (om::om-make-point 18 130) (om::om-make-point 262 20) "output-motif"); update the pop-up menu
                       (oa::om-invalidate-view editor)
-                      ;(print "updated solutions")
                     )
       )
     )
@@ -561,8 +550,8 @@
     ; button to add the selected solution to the list of phrases
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 115 170) ; position
-      (om::om-make-point 100 20) ; size
+      (om::om-make-point 160 170) ; position
+      (om::om-make-point 130 20) ; size
       "Add to phrases"
       :di-action #'(lambda (b)
                     (if (typep (output-solution (om::object editor)) 'null); if there is no solution to add
@@ -581,13 +570,12 @@
                           (make-instance 'poly 
                             :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
                           )
-                        ); initialize the list
+                        ); create a list containing the phrase
                       ); add it to the end                    
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 18 230) (om::om-make-point 262 20) "output-phrase"); update the pop-up menu
                       (oa::om-invalidate-view editor)
-                      ;(print "updated solutions")
                     )
       )
     )
@@ -595,8 +583,8 @@
     ; button to add the selected solution to the list of periods
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 225 170)
-      (om::om-make-point 100 20)
+      (om::om-make-point 305 170)
+      (om::om-make-point 130 20)
       "Add to periods"
       :di-action #'(lambda (b)
                     (if (typep (output-solution (om::object editor)) 'null); if there is no solution to add
@@ -615,13 +603,12 @@
                           (make-instance 'poly 
                             :voices (list (output-solution (om::object editor)) (input-chords (om::object editor)))
                           )
-                        ); initialize the list
+                        ); create a list containing the period
                       ); add it to the end 
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-period"); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 18 330) (om::om-make-point 262 20) "output-period"); update the pop-up menu
                       (oa::om-invalidate-view editor)
-                      ;(print "updated solutions")
                     )
       )
     )
@@ -927,7 +914,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 190 2) 
+      (om::om-make-point 167 2) 
       (om::om-make-point 120 20) 
       "Solution assembly"
       :font om::*om-default-font1b*
@@ -938,12 +925,12 @@
     ;/!\ if you move this, you also have to move the new ones that are generating every time the list is modified! see update-pop-up function
     (om::om-make-dialog-item
       'om::pop-up-menu
-      (om::om-make-point 5 130)
-      (om::om-make-point 320 20)
+      (om::om-make-point 18 130)
+      (om::om-make-point 262 20)
       "Motif selection"
-      :range (motives-list (om::object editor))
+      :range (motifs-list (om::object editor))
       :di-action #'(lambda (m)
-                    (setf (output-motif (om::object editor)) (nth (om::om-get-selected-item-index m) (motives-list (om::object editor)))); set the output to the selected solution
+                    (setf (output-motif (om::object editor)) (nth (om::om-get-selected-item-index m) (motifs-list (om::object editor)))); set the output to the selected solution
                     (let ((indx (om::om-get-selected-item-index m)))
                         (om::openeditorframe ; open the editor of the selected solution
                             (om::omNG-make-new-instance 
@@ -958,17 +945,17 @@
     ; name for the pop-up list
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 5 110) 
+      (om::om-make-point 20 110) 
       (om::om-make-point 200 20) 
-      "Motives"
+      "Motifs"
       :font om::*om-default-font1*
     )
 
     ; button to add a motif before the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 150)
-      (om::om-make-point 150 20)
+      (om::om-make-point 15 155)
+      (om::om-make-point 202 20)
       "Add before current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-motif (om::object editor)) 'null); if there is no solution to add
@@ -984,8 +971,8 @@
     ; button to add a motif after the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 155 150)
-      (om::om-make-point 150 20)
+      (om::om-make-point 233 155)
+      (om::om-make-point 202 20)
       "Add after current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-motif (om::object editor)) 'null); if there is no solution to add
@@ -998,24 +985,24 @@
       )
     )
 
-    ;button to reset the list of motives
+    ;button to reset the list of motifs
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 325 130)
-      (om::om-make-point 100 20)
+      (om::om-make-point 285 126)
+      (om::om-make-point 150 20)
       "Reset"
       :di-action #'(lambda (b)
-                    (setf (motives-list (om::object editor)) nil)
+                    (setf (motifs-list (om::object editor)) nil)
                     (setf (output-motif (om::object editor)) nil)
-                    (update-pop-up editor solution-assembly-panel (motives-list (om::object editor)) (om::om-make-point 5 130) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+                    (update-pop-up editor solution-assembly-panel (motifs-list (om::object editor)) (om::om-make-point 18 130) (om::om-make-point 262 20) "output-motif"); update the pop-up menu
       )
     )
 
     ; pop-up list to select the desired phrase
     (om::om-make-dialog-item
       'om::pop-up-menu
-      (om::om-make-point 5 230)
-      (om::om-make-point 320 20)
+      (om::om-make-point 18 230)
+      (om::om-make-point 262 20)
       "Phrase selection"
       :range (phrases-list (om::object editor))
       :di-action #'(lambda (m)
@@ -1034,7 +1021,7 @@
     ; name for the pop-up list
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 5 210) 
+      (om::om-make-point 20 210) 
       (om::om-make-point 200 20) 
       "Phrases"
       :font om::*om-default-font1*
@@ -1043,8 +1030,8 @@
     ;button to add a phrase before the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 250)
-      (om::om-make-point 150 20)
+      (om::om-make-point 15 255)
+      (om::om-make-point 202 20)
       "Add before current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-phrase (om::object editor)) 'null); if there is no solution to add
@@ -1060,8 +1047,8 @@
     ;button to add  phrase after the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 155 250)
-      (om::om-make-point 150 20)
+      (om::om-make-point 233 255)
+      (om::om-make-point 202 20)
       "Add after current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-phrase (om::object editor)) 'null); if there is no solution to add
@@ -1077,21 +1064,21 @@
     ;button to reset the list of phrases
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 325 230)
-      (om::om-make-point 100 20)
+      (om::om-make-point 285 226)
+      (om::om-make-point 150 20)
       "Reset"
       :di-action #'(lambda (b)
                     (setf (phrases-list (om::object editor)) nil)
                     (setf (output-phrase (om::object editor)) nil)
-                    (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+                    (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 18 230) (om::om-make-point 262 20) "output-motif"); update the pop-up menu
       )
     )
 
     ; pop-up list to select the desired period
     (om::om-make-dialog-item
       'om::pop-up-menu
-      (om::om-make-point 5 330)
-      (om::om-make-point 320 20)
+      (om::om-make-point 18 330)
+      (om::om-make-point 262 20)
       "Period selection"
       :range (periods-list (om::object editor))
       :di-action #'(lambda (m)
@@ -1110,7 +1097,7 @@
     ; name for the pop-up list
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 5 310) 
+      (om::om-make-point 20 310) 
       (om::om-make-point 200 20) 
       "Periods"
       :font om::*om-default-font1*
@@ -1119,8 +1106,8 @@
     ; button to add a period before the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 350)
-      (om::om-make-point 150 20)
+      (om::om-make-point 15 355)
+      (om::om-make-point 202 20)
       "Add before current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-period (om::object editor)) 'null); if there is no solution to add
@@ -1136,8 +1123,8 @@
     ; button to add a period after the current melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 155 350)
-      (om::om-make-point 150 20)
+      (om::om-make-point 232 355)
+      (om::om-make-point 202 20)
       "Add after current melody"
       :di-action #'(lambda (b)
                     (if (typep (output-period (om::object editor)) 'null); if there is no solution to add
@@ -1153,13 +1140,13 @@
     ;button to reset the list of periods
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 325 330)
-      (om::om-make-point 100 20)
+      (om::om-make-point 285 326)
+      (om::om-make-point 150 20)
       "Reset"
       :di-action #'(lambda (b)
                     (setf (periods-list (om::object editor)) nil)
                     (setf (output-period (om::object editor)) nil)
-                    (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-motif"); update the pop-up menu
+                    (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 18 330) (om::om-make-point 262 20) "output-motif"); update the pop-up menu
 
       )
     )
@@ -1167,8 +1154,8 @@
     ;button to show the melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 430)
-      (om::om-make-point 400 20)
+      (om::om-make-point 15 430)
+      (om::om-make-point 420 20)
       "Show melody"
       :di-action #'(lambda (b)
                     (if (typep (melody (om::object editor)) 'null); if there is no melody yet
@@ -1186,8 +1173,8 @@
     ;button to save the melody as a phrase
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 455)
-      (om::om-make-point 197 20)
+      (om::om-make-point 15 460)
+      (om::om-make-point 202 20)
       "Save as phrase"
       :di-action #'(lambda (b)
                     (if (typep (melody (om::object editor)) 'null); if there is no melody to add
@@ -1198,7 +1185,7 @@
                       (nconc (phrases-list (om::object editor)) (list (melody (om::object editor)))); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 5 230) (om::om-make-point 320 20) "output-phrase"); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (phrases-list (om::object editor)) (om::om-make-point 18 230) (om::om-make-point 262 20) "output-phrase"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                     )
       )
@@ -1207,8 +1194,8 @@
     ; button to save the melody as a period
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 207 455)
-      (om::om-make-point 197 20)
+      (om::om-make-point 233 460)
+      (om::om-make-point 202 20)
       "Save as period"
       :di-action #'(lambda (b)
                     (if (typep (melody (om::object editor)) 'null); if there is no melody to add
@@ -1219,7 +1206,7 @@
                       (nconc (periods-list (om::object editor)) (list (melody (om::object editor)))); add it to the end
                     )
                     (progn
-                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 5 330) (om::om-make-point 320 20) "output-period"); update the pop-up menu
+                      (update-pop-up editor solution-assembly-panel (periods-list (om::object editor)) (om::om-make-point 18 330) (om::om-make-point 262 20) "output-period"); update the pop-up menu
                       (oa::om-invalidate-view editor)
                     )
       )
@@ -1228,8 +1215,8 @@
     ; button to reset the melody
     (om::om-make-dialog-item
       'om::om-button
-      (om::om-make-point 5 480)
-      (om::om-make-point 400 20)
+      (om::om-make-point 15 490)
+      (om::om-make-point 420 20)
       "Reset melody"
       :di-action #'(lambda (b)
         (setf (melody (om::object editor)) nil)
