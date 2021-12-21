@@ -13,7 +13,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MELODY DIRECTION constraints ;
+; MELODY DIRECTION constraints ; WORK
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -76,8 +76,32 @@
     )
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; RANGE RESTRICTION constraint ; WORKS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;<sp> is the space
+;<notes> is the array of variables representing the pitch
+;<input-chords> is the input chords in the form of a voice object
+; Ensures that the melody is always higher than the lowest note from the chords and lower than the highest note of the chord + 2 octaves
+(defun range-restriction (sp notes input-chords)
+    (let ((chords (om::chords input-chords)); get the list of pitches for all the notes in the voice object
+        vals min-note max-note)
+        ; collect all the notes and put them in one big list
+        (setf vals
+                (to-midi (om::flat 
+                    (loop :for n :from 1 :below (length chords) :by 1 collect (om::lmidic (nth n chords)))
+                ))
+        )
+        (setf min-note (min-list vals)); get the lowest note
+        (setf max-note (max-list vals)); get the highest note
 
+        (dolist (note notes);restrain the interval domains to acceptable values 
+            (gil::g-rel sp note gil::IRT_GQ min-note) ; note >= min-note
+            (gil::g-rel sp note gil::IRT_LQ (+ max-note 24)) ; note <= max-note + 2 octaves (24 semitones)
+        )
+    )
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; DISSONNANCE RESOLUTION constraint ; TODO + develop comments

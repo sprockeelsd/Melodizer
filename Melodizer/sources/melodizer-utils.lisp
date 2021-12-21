@@ -16,6 +16,32 @@
     )
 )
 
+(defun min-list (L)
+    (cond
+        ((null (car L)) nil); the list is empty -> return nil
+        ((null (cdr L)) (car L)); the list has 1 element -> return it
+        (T 
+            (let ((head (car L)); default behavior
+                 (tailMin (min-list (cdr L))))
+                (if (< head tailMin) head tailMin)
+            )
+        )
+    )
+)
+
+(defun max-list (L)
+    (cond
+        ((null (car L)) nil); the list is empty -> return nil
+        ((null (cdr L)) (car L)); the list has 1 element -> return it
+        (T 
+            (let ((head (car L)); default behavior
+                 (tailMax (max-list (cdr L))))
+                (if (> head tailMax) head tailMax)
+            )
+        )
+    )
+)
+
 ; function to update the list of solutions in a pop-up menu without having to close and re-open the window
 (defun update-pop-up (self my-panel data position size output)
   (om::om-add-subviews my-panel

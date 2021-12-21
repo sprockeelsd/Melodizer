@@ -14,10 +14,10 @@
         pitch intervals dfs tstop sopts)
 
         ;initialize the variables
-        (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 60 84))
+        (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 0 127))
         ;(setq pitch (gil::add-int-var-array sp 20000 1 10)) ; to test if we can stop during the search
         ; set the intervals value to everything up to an octave, not including tritones, major seventh and minor seventh
-        (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -24 24)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
+        (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -127 127)); this can be as large as possible given the domain of pitch, to keep all the constraints in the constraint part.
 
         ; connect pitches to intervals
         (loop :for j :from 0 :below (length intervals) :do ;for each interval
@@ -35,6 +35,8 @@
         ; then, post the constraints
 
         ; mandatory constraints
+
+        (range-restriction sp pitch input)
 
         (interval-between-adjacent-notes sp pitch intervals)
 
