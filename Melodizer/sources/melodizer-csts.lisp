@@ -296,6 +296,7 @@
         ;get the notes playable on that chord
         (setf admissible-notes (get-admissible-notes chord-pitch mode))
         (gil::g-dom sp (nth variable-id notes) admissible-notes); post the constraint that the domain of that variable is one of the admissible notes
+        (gil::g-rel sp (nth variable-id notes) gil::IRT_LQ (+ (max (first chord-pitch)) 18)); post the constraint that the interval between the note of the melody and the highest note of the chord is maximum 1 octave
     )
 )
 
@@ -308,10 +309,7 @@
 
 
 
-; PRECEDENCE test
-(defun precedence(sp notes val1 val2)
-    (gil::g-precede sp notes val1 val2)
-)
+
 
 ; old version
 #| (defun interval-between-adjacent-notes (sp notes)

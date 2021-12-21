@@ -42,8 +42,6 @@
 
         (in-tonality sp pitch key mode)
 
-        ;(precedence sp pitch 72 71)
-
         (note-on-chord sp pitch rhythm input)
 
         (harmonic-interval-chord sp pitch rhythm input)
@@ -53,7 +51,22 @@
         
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_DEGREE_MAX gil::INT_VAL_RND)
-
+        
+        ; the branching on intervals depends on the optional constraints. If there are none, do default branching
+        (cond
+            ((or (find "strictly-increasing-pitch" optional-constraints :test #'equal) (find "increasing-pitch" optional-constraints :test #'equal) (find "mostly-increasing-pitch" optional-constraints :test #'equal))
+                (print "increasing")
+                (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MAX)
+            )
+            ((or (find "strictly-decreasing-pitch" optional-constraints :test #'equal) (find "decreasing-pitch" optional-constraints :test #'equal) (find "mostly-decreasing-pitch" optional-constraints :test #'equal))
+                (print "decreasing")
+                (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MIN)
+            )
+            (T ; default behaviour 
+                (print "default")
+                (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_MED)
+            )
+        )
         (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MAX)
 
         ;time stop
