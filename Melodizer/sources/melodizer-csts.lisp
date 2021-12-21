@@ -68,12 +68,20 @@
 (defun mostly-decreasing-pitch (sp notes intervals global-interval)
     (let (sum interval-domain-smaller-than-zero)
         (setq sum (gil::add-int-var sp (- (* 127 (length intervals))) -1)); variable to hold the result of the sum of the intervals
-        (setq interval-domain-smaller-than-zero (loop :for n :from 1 :to 128 :by 1 collect (- n))); [-127...-1]
+        (setq interval-domain-smaller-than-zero (loop :for n :from 1 :to 13 :by 1 collect (- n))); [-13...-1]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
         (gil::g-rel sp sum gil::IRT_LQ (- (parse-integer global-interval))); sum <= global-interval
         (gil::g-count sp intervals interval-domain-smaller-than-zero gil::IRT_GQ (ceiling (* 80 (length intervals)) 100)); (nb of intervals < 0) >= 0.8*size(intervals)
     )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; AT LEAST N constraint ;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun at-least-n (sp notes values n)
+    (gil::g-count-array sp notes values gil::IRT_EQ n)
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -90,7 +98,7 @@
         ; collect all the notes and put them in one big list
         (setf vals
                 (to-midi (om::flat 
-                    (loop :for n :from 1 :below (length chords) :by 1 collect (om::lmidic (nth n chords)))
+                    (loop :for n :from 0 :below (length chords) :by 1 collect (om::lmidic (nth n chords)))
                 ))
         )
         (setf min-note (min-list vals)); get the lowest note

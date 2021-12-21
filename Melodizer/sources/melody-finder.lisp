@@ -424,7 +424,10 @@
                         )
                       )
                       ((string-equal (tool-mode (om::object editor)) "Variation maker")
-                        (print "This mode is not supported yet")
+                        (let init
+                          (setq init (variator (input-chords (om::object editor)) (input-rhythm (om::object editor)) (key (om::object editor)) (mode (om::object editor)) 0.6))
+                          (setf (result (om::object editor)) init)
+                        )
                       )
                     )
       )
@@ -448,7 +451,7 @@
                       "next thread" ; name of the thread, not necessary but useful for debugging
                       nil ; process initialization keywords, not needed here
                       (lambda () ; function to call
-                        (setf (solution (om::object editor)) (search-next-melody-finder (result (om::object editor)) (om::tree (input-rhythm (om::object editor))) (om::object editor)))
+                        (setf (solution (om::object editor)) (search-next (result (om::object editor)) (om::tree (input-rhythm (om::object editor))) (om::object editor)))
                         (setf (om::tempo (solution (om::object editor))) (om::tempo (input-rhythm (om::object editor)))); set the tempo of the new voice object to be the same as the input
                         (om::openeditorframe ; open a voice window displaying the solution
                           (om::omNG-make-new-instance 
@@ -902,7 +905,7 @@
 )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; creating the solution assembly panel ;;;
+    ;;; creating the solution assembly panel ;;;      the final positions are done
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; this function creates the elements of the solution-assembly panel
@@ -1229,7 +1232,7 @@
 
 
 
-  ;; ;;; text boxes (they can be edited!)
+  ;; ;;; text boxes (they can be edited)
 ;; (om::om-make-dialog-item
 ;;   'om::text-box
 ;;   (om::om-make-point 660 50) 
