@@ -1,7 +1,7 @@
 (in-package :mldz)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; ALL-DIFFERENT-NOTES constraint ; WORKS
+; ALL-DIFFERENT-NOTES constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -13,7 +13,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; MELODY DIRECTION constraints ; WORK
+; MELODY DIRECTION constraints ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -38,7 +38,7 @@
 ; TODO PEUT-ETRE EN FAIRE 2, CELLE-CI ET UNE QUI DIT QUE LES INTERVALLES DESCENDANTS DOIVENT ETRE PETITS
 (defun mostly-increasing-pitch (sp notes intervals global-interval)
     (let (sum interval-domain-greater-than-zero) 
-        (setq sum (gil::add-int-var sp -48 48)) ;  variable to hold the result of the sum of all intervals (cant' be bigger than 127)
+        (setq sum (gil::add-int-var sp -127 127)) ;  variable to hold the result of the sum of all intervals (cant' be bigger than 127)
         (setq interval-domain-greater-than-zero (loop :for n :from 1 :below 13 :by 1 collect n)); [1..12]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
@@ -79,13 +79,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ; AT LEAST N constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;<sp> is the space
+;notes> is the array of variables representing the pitch
+;<values> is the array of values 
+;<n> is the number of variables such that notes[i] = values[i]
+; Ensures that the number of times that notes[i] = values[i] is at least n
 (defun at-least-n (sp notes values n)
     (gil::g-count-array sp notes values gil::IRT_EQ n)
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; RANGE RESTRICTION constraint ; WORKS
+; RANGE RESTRICTION constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;<sp> is the space
@@ -93,7 +97,7 @@
 ;<input-chords> is the input chords in the form of a voice object
 ; Ensures that the melody is always higher than the lowest note from the chords and lower than the highest note of the chord + 2 octaves
 (defun range-restriction (sp notes input-chords)
-    (let ((chords (om::chords input-chords)); get the list of pitches for all the notes in the voice object
+    (let ((chords (om::chords input-chords)); get the list of pitches for all the chords in the voice object
         vals min-note max-note)
         ; collect all the notes and put them in one big list
         (setf vals
@@ -105,7 +109,7 @@
         (setf max-note (max-list vals)); get the highest note
 
         (dolist (note notes);restrain the interval domains to acceptable values 
-            (gil::g-rel sp note gil::IRT_GQ min-note) ; note >= min-note
+            (gil::g-rel sp note gil::IRT_GQ max-note) ; note >= max-note
             (gil::g-rel sp note gil::IRT_LQ (+ max-note 24)) ; note <= max-note + 2 octaves (24 semitones)
         )
     )
@@ -125,7 +129,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; INTERVAL-BETWEEN-ADJACENT-NOTES constraint ; WORKS
+; INTERVAL-BETWEEN-ADJACENT-NOTES constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -145,7 +149,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
-; IN TONALITY constraint ; WORKS
+; IN TONALITY constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -164,18 +168,15 @@
 )
 
 ; returns the set of notes that are in the tonality specified by the arguments
-; TODO add other modes (natural minor, melodic minor, ...)
 (defun notes-from-tonality (key mode)
     (let (admissible-notes note scale i)
-
         ; get the scale in semi-tones
         (setq scale (get-scale mode))
-
         ; then, create a list and add the notes in it
         (setq note key)
         (setq i 0)
         (setq admissible-notes (list))
-        ; add all notes over the key, then add all notes under the key
+        ; add all notes above the key, then add all notes below the key
         (om::while (<= note 127) :do
             (setq admissible-notes (cons note admissible-notes)); add it to the list --(push note admissible-notes)?
             (if (>= i (length scale))
@@ -201,7 +202,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; HARMONIC-INTERVAL-CHORD constraint ; WORKS
+; HARMONIC-INTERVAL-CHORD constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -255,7 +256,7 @@
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; NOTE-ON-CHORDS constraint ; WORKS
+; NOTE-ON-CHORDS constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; <sp> is the space
@@ -307,44 +308,4 @@
         (gil::g-rel sp (nth variable-id notes) gil::IRT_LQ (+ (max (first chord-pitch)) 18)); post the constraint that the interval between the note of the melody and the highest note of the chord is maximum 1 octave
     )
 )
-
-
-
-
-
-
-
-
-
-
-
-
-; old version
-#| (defun interval-between-adjacent-notes (sp notes)
-    (let (intervals valid-intervals n); array of IntVars representing the intervals between two adjacent notes
-        (setq valid-intervals (list -1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12)); admissible values for the intervals)
-        (setq n (- (length notes) 1))
-        (setq intervals (gil::add-int-var-array sp n -12 12))
-        (loop :for i :from 0 :below 3 :do
-            (gil::g-dom sp (nth i intervals) valid-intervals)
-        )
-        (loop :for i :from 0 :below n :do ; for each interval
-            (let (temp)
-                (setq temp (gil::add-int-var-array sp 3 -12 108))
-                (gil::g-dom-intvar sp (nth 0 temp) (nth i notes)); domain of temp[0] = domain of notes[i]
-                (print n)
-                (gil::g-dom-intvar sp (nth 1 temp) (nth (+ i 1) notes)); domain of temp[1] = domain of notes[i+1]
-                (gil::g-dom-intvar sp (nth 2 temp) (nth i intervals)); domain of temp[2] = domain of intervals[i]
-
-                ; linking the temporary variables to the ones they represent
-                (gil::g-rel sp (nth 0 temp) (rel-to-gil =) (nth i notes)); note1 = notes[i]
-                (gil::g-rel sp (nth 1 temp) (rel-to-gil =) (nth (+ i 1) notes))
-                (gil::g-rel sp (nth 2 temp) (rel-to-gil =) (nth i intervals))
-
-                ;adding the constraint on the interval
-                (gil::g-linear sp (list 1 -1 -1) temp (rel-to-gil '=) 0)
-            )
-        )
-    )
-) |#
 
