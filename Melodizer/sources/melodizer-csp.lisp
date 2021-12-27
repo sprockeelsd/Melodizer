@@ -1,6 +1,9 @@
 (in-package :mldz)
 
-; VARIATOR
+;;;;;;;;;;;;
+; VARIATOR ;
+;;;;;;;;;;;;
+
 ; <input-chords> is a voice object with the chords on top of which the melody is played
 ; <input-melody> is the melody that we wish to vary
 ; <key> is the key of the tonality
@@ -75,8 +78,10 @@
 
 )
 
+;;;;;;;;;;;;;;;;;
+; MELODY-FINDER ;
+;;;;;;;;;;;;;;;;;
 
-; MELODY-FINDER
 ; <input> is a voice object with the chords on top of which the melody will be played
 ; <rhythm> the rhythm of the melody to be found in the form of a voice object
 ; <optional-constraints> is a list of optional constraint names that have to be applied to the problem
@@ -187,7 +192,10 @@
     )
 )
 
-; SEARCH-NEXT
+;;;;;;;;;;;;;;;
+; SEARCH-NEXT ;
+;;;;;;;;;;;;;;;
+
 ; <l> is a list containing in that order the search engine for the problem and the variables
 ; <rhythm> is the input rhythm as given by the user 
 ; <melodizer-object> is a melodizer object
@@ -218,7 +226,7 @@
         (make-instance 'voice
             :tree rhythm
             :chords pitches
-            :tempo 60
+            :tempo (om::tempo (input-rhythm melodizer-object))
         )
     )
 )

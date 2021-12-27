@@ -16,6 +16,43 @@
     )
 )
 
+;converts the value of a note to its name
+(defmethod note-value-to-name (note)
+    (cond 
+        ((eq note 60) "C")
+        ((eq note 61) "C#")
+        ((eq note 62) "D")
+        ((eq note 63) "Eb")
+        ((eq note 64) "E")
+        ((eq note 65) "F")
+        ((eq note 66) "F#")
+        ((eq note 67) "G")
+        ((eq note 68) "Ab")
+        ((eq note 69) "A")
+        ((eq note 70) "Bb")
+        ((eq note 71) "B")
+    )
+)
+
+;converts the name of a note to its value
+(defmethod name-to-note-value (name)
+    (cond 
+        ((string-equal name "C") 60)
+        ((string-equal name "C#") 61)
+        ((string-equal name "D") 62)
+        ((string-equal name "Eb") 63)
+        ((string-equal name "E") 64)
+        ((string-equal name "F") 65)
+        ((string-equal name "F#") 66)
+        ((string-equal name "G") 67)
+        ((string-equal name "Ab") 68)
+        ((string-equal name "A") 69)
+        ((string-equal name "Bb") 70)
+        ((string-equal name "B") 71)
+    )
+)
+
+; finds the smallest element of a list
 (defun min-list (L)
     (cond
         ((null (car L)) nil); the list is empty -> return nil
@@ -29,6 +66,7 @@
     )
 )
 
+; finds the biggest element of a list
 (defun max-list (L)
     (cond
         ((null (car L)) nil); the list is empty -> return nil
@@ -113,6 +151,7 @@
     )
 )
 
+; returns the list of intervals defining a given mode
 (defun get-scale (mode)
     (cond 
         ((string-equal mode "ionian (major)")
@@ -228,52 +267,21 @@
     )
 )
 
-;converts the Value of a note to its name
-(defmethod note-value-to-name (note)
-    (cond 
-        ((eq note 60) "C")
-        ((eq note 61) "C#")
-        ((eq note 62) "D")
-        ((eq note 63) "Eb")
-        ((eq note 64) "E")
-        ((eq note 65) "F")
-        ((eq note 66) "F#")
-        ((eq note 67) "G")
-        ((eq note 68) "Ab")
-        ((eq note 69) "A")
-        ((eq note 70) "Bb")
-        ((eq note 71) "B")
-    )
-)
-
-;converts the name of a note to its value
-(defmethod name-to-note-value (name)
-    (cond 
-        ((string-equal name "C") 60)
-        ((string-equal name "C#") 61)
-        ((string-equal name "D") 62)
-        ((string-equal name "Eb") 63)
-        ((string-equal name "E") 64)
-        ((string-equal name "F") 65)
-        ((string-equal name "F#") 66)
-        ((string-equal name "G") 67)
-        ((string-equal name "Ab") 68)
-        ((string-equal name "A") 69)
-        ((string-equal name "Bb") 70)
-        ((string-equal name "B") 71)
-    )
-)
-
-;makes a list (name voice-instance) from a list of voices:
+;makes a list (name voice-instance) from a list of voices: 
+;(from Karim Haddad)
 (defun make-data-sol (liste)
   (loop for l in liste
         for i from 1 to (length liste)
         collect (list (format nil "solution ~D: ~A"  i l) l)))
     
 
+
+
+
+
+
 ; taken from rhythm box (add link)
 ; https://github.com/blapiere/Rhythm-Box
-
 (defun rel-to-gil (rel)
 "Convert a relation operator symbol to a GiL relation value."
     (cond
@@ -301,38 +309,3 @@
 				 (append accumulator (list (car input-list)))))))
 
 
-; takes a rhythm tree as argument and returns the number of events in it (doesn't work with dotted notes for now)
-;; (defmethod get-events-from-rtree (rtree)
-;;     (let ((l (first (rest rtree))) ; get the first element of the list
-;;         (nb 0)); the number of events
-;;         (dolist (bar l); for each bar
-;;             (dolist (elem (second bar)); count each event in the bar
-;;                 (if (typep elem 'list); if the element of the bar is a list
-;;                     (dolist (event (second elem))
-;;                         ;(print event)
-;;                         (setq nb (+ nb 1))
-;;                     )
-;;                     (setq nb (+ nb 1)); if it is just a number
-;;                 )
-;;             )
-;;         )
-;;         ;(print nb)
-;;         nb
-;;     )
-;; )
-
-;; ; function to get the mode of a chord from the intervals between the notes
-;; (defun get-mode (intervals)
-;;     (let ((first (first intervals))
-;;         (second (second intervals)))
-;;         (cond
-;;             ((or (and (eq first 400) (eq second 300)) (and (eq first 300) (eq second 500)) (and (eq first 500) (eq second 400)))
-;;                 "major"
-;;             ) ; if intervals = (4,3) or (3,5) or (5,4) this is a major chord
-;;             ((or (and (eq first 300) (eq second 400)) (and (eq first 400) (eq second 500)) (and (eq first 500) (eq second 300)))
-;;                 "minor"
-;;             ) ; if intervals = (3,4) or (4,5) or (5,3) this is a minor chord
-;;             ; add other types of chords (diminished, augmented, ...)
-;;         )
-;;     )
-;; )
