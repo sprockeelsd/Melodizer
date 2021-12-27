@@ -79,6 +79,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ; AT LEAST N constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;<sp> is the space
 ;notes> is the array of variables representing the pitch
 ;<values> is the array of values 
@@ -109,8 +110,8 @@
         (setf max-note (max-list vals)); get the highest note
 
         (dolist (note notes);restrain the interval domains to acceptable values 
-            (gil::g-rel sp note gil::IRT_GQ max-note) ; note >= max-note
-            (gil::g-rel sp note gil::IRT_LQ (+ max-note 24)) ; note <= max-note + 2 octaves (24 semitones)
+            (gil::g-rel sp note gil::IRT_GQ min-note) ; note >= min-note
+            (gil::g-rel sp note gil::IRT_LQ (+ max-note 24)) ; note <= max-note + 2 octaves (24 semitones); p-e retirer
         )
     )
 )

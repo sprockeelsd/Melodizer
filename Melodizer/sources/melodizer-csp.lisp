@@ -138,7 +138,7 @@
             )
             (T ; default behaviour 
                 (print "default")
-                (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_MED)
+                (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
             )
         )
 
