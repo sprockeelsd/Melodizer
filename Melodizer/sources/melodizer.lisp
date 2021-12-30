@@ -331,17 +331,13 @@
       :di-action #'(lambda (b)
         (setf (input-chords (om::object editor)) (make-instance 'voice))
         (setf (input-rhythm (om::object editor)) (make-instance 'voice))
-        (setf (key (om::object editor)) 60)
-        (setf (mode (om::object editor)) "ionian (major)")
-        (setf (tool-mode (om::object editor)) "Melody-Finder") 
-        (setf (variety (om::object editor)) 0)
       )
     )
   )
 )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; creating the search panel ;;;   final positions done
+    ;;; creating the search panel ;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;this function creates all the elements of the search-panel (buttons, pop-up-menus,...)
@@ -905,7 +901,7 @@
 )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; creating the solution assembly panel ;;;      the final positions are done
+    ;;; creating the solution assembly panel ;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; this function creates the elements of the solution-assembly panel

@@ -93,6 +93,7 @@
 (defmethod melody-finder (input rhythm optional-constraints &optional (global-interval nil) (key 60.0) (mode "major"))
     (let ((sp (gil::new-space)); create the space; 
         pitch intervals dfs tstop sopts)
+        (print "create the csp")
 
         ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 0 127))
@@ -124,7 +125,7 @@
         (note-on-chord sp pitch rhythm input)
 
         (harmonic-interval-chord sp pitch rhythm input)
-
+        
         ; optional constraints
         (post-optional-constraints optional-constraints sp pitch intervals global-interval)
         

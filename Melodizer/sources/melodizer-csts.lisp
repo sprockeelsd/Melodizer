@@ -219,20 +219,51 @@
         (local-starting-note-melody 0); counter to keep track of which variable is the start of the melody over the given chord
         (starting-time-next-chord 0))
         (dolist (c chords-starting-times); go through the chords starting times
+            ;(print "chord starting time")
+            ;(print c)
             (setf starting-time-next-chord (nth (+ 1 chord-counter) chords-starting-times)); get the starting time of the next chord
+            ;(print "starting time next chord")
+            ;(print starting-time-next-chord)
             (setf local-starting-note-melody variable-counter); keep a track of the first note in the context of this chord
+            (cond 
+                ((>= (+ 1 variable-counter) (length melody-starting-times)); we reached the last note
+                        ;(print "no more notes")
+                        (return ); no need to go through notes if there are no more notes
+                )
+            )
+
             (dolist (m (subseq melody-starting-times variable-counter)); go through all the notes that we haven't seen yet
+                ;(print "current note")
+                ;(print m)
+                ;(print variable-counter)
                 (cond 
+                    ((= variable-counter (- (length melody-starting-times) 1)); we reached the last note
+                        ;(print "start")
+                        ;(print local-starting-note-melody)
+                        ;(print "end")
+                        ;(print variable-counter)
+                        (hic-constraint sp notes local-starting-note-melody variable-counter)
+                    )
                     ((typep starting-time-next-chord 'null); if we are looking at the last chord
+                        ;(print "last chord")
+                        ; check qu'il reste des notes
                         (hic-constraint sp notes local-starting-note-melody (- (length melody-starting-times) 1)); post the constraint on all remaining notes
                         (return )
                     )
                     ((< m starting-time-next-chord); if the note is in the context of this chord
+                        ;(print "still in")
                         (incf variable-counter 1); simply increment the counter for the melody
                     )
                     ((>= m starting-time-next-chord); the note is not in the context of this chord
+                        ;(print "out")
+                        ;(print "local starting note")
+                        ;(print local-starting-note-melody)
+                        ;(print "end note")
+                        ;(print (- variable-counter 1))
                         ; post the constraint on the corresponding notes
-                        (hic-constraint sp notes local-starting-note-melody (- variable-counter 1))
+                        (if (>= (- variable-counter 1) local-starting-note-melody); if it is smaller, there is no note in the context of that chord
+                            (hic-constraint sp notes local-starting-note-melody (- variable-counter 1))
+                        )
                         (return )
                     )
                 )
