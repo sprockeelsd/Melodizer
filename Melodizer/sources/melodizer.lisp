@@ -6,31 +6,54 @@
 
 (om::defclass! melodizer () 
   ;attributes
-  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation "The input chords on top of which the melody will be played in the form of a voice object.")
-    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation "The rhythm of the melody in the form of a voice object. ")
-    (key :accessor key :initarg :key :initform 60 :documentation "The key the melody is in (default : C).")
-    (mode :accessor mode :initarg :mode :initform "ionian (major)" :documentation "The mode the melody is in (default : major).")
-    (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation "The mode of the tool, e.g given Melody-Finder if we want to find a melody, Accompagnement-Finder if we want to find an accompagnement, Ornement if we want to complexify the melody,...")
-    (variety :accessor variety :initarg :variety :initform 1 :documentation "The minimal variety we want for the solution, expressed as a number of notes.")
-    (global-interval :accessor global-interval :initarg :global-interval :initform "1" :documentation "global interval that the produced melody should cover")
-    (optional-constraints :accessor optional-constraints :initarg :optional-constraints :initform (list) :documentation "a list of booleans telling if the optional constraint should be added to the problem")
-    (result :accessor result :initarg :result :initform (list) :documentation "A temporary list holder to store the result of the call to melody-finder, shouldn't be touched.")
-    (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation "A boolean variable to tell if the user wishes to stop the search or not.")
-    (solution :accessor solution :initarg :solution :initform nil :documentation "The current solution of the CSP in the form of a voice object.")
-    (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation "The list of all the solutions saved by the user.")
-    (motifs-list :accessor motifs-list :initarg :motifs-list :initform '() :documentation "The list of motifs created by the user")
-    (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation "The list of phrases created by the user")
-    (periods-list :accessor periods-list :initarg :periods-list :initform '() :documentation "The list of periodes created by the user")
-    (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation "The selected solution.")
-    (output-motif :accessor output-motif :initarg :output-motif :initform nil :documentation "The selected motif")
-    (output-phrase :accessor output-phrase :initarg :output-phrase :initform nil :documentation "The selected phrase")
-    (output-period :accessor output-period :initarg :output-period :initform nil :documentation "The selected period")
-    (melody :accessor melody :initarg :melody :initform nil :documentation "The final melody produced by the object")
-    ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2")
+  ((input-chords :accessor input-chords :initarg :input-chords :initform (make-instance 'voice) :documentation 
+    "The input chords on top of which the melody will be played in the form of a voice object.")
+    (input-rhythm :accessor input-rhythm :initarg :input-rhythm :initform (make-instance 'voice) :documentation 
+      "The rhythm of the melody or a melody in the form of a voice object. ")
+    (key :accessor key :initarg :key :initform 60 :documentation 
+      "The key the melody is in (default : C).")
+    (mode :accessor mode :initarg :mode :initform "ionian (major)" :documentation 
+      "The mode the melody is in (default : major).")
+    (tool-mode :accessor tool-mode :initarg :tool-mode :initform "Melody-Finder" :documentation 
+      "The mode of the tool. melody-finder allows to generate melodies based on a rhythm input, while variation-maker allows to 
+      make variations of a melody")
+    (variety :accessor variety :initarg :variety :initform 1 :documentation 
+      "The minimal variety we want for the solution, expressed as a number of notes. (does nothing for now)")
+    (global-interval :accessor global-interval :initarg :global-interval :initform "1" :documentation 
+      "global interval that the produced melody should cover (optional constraint)")
+    (optional-constraints :accessor optional-constraints :initarg :optional-constraints :initform (list) :documentation 
+      "a list of optional constraint names that should be added to the problem")
+    (result :accessor result :initarg :result :initform (list) :documentation 
+      "A temporary list holder to store the result of the call to the CSPs, shouldn't be touched.")
+    (stop-search :accessor stop-search :initarg :stop-search :initform nil :documentation 
+      "A boolean variable to tell if the user wishes to stop the search or not.")
+    (solution :accessor solution :initarg :solution :initform nil :documentation 
+      "The current solution of the CSP in the form of a voice object.")
+    (solutions-list :accessor solutions-list :initarg :solution-list :initform '() :documentation 
+      "The list of all the solutions saved by the user for the current search.")
+    (motifs-list :accessor motifs-list :initarg :motifs-list :initform '() :documentation 
+      "The list of motifs created by the user.")
+    (phrases-list :accessor phrases-list :initarg :phrases-list :initform '() :documentation 
+      "The list of phrases created by the user.")
+    (periods-list :accessor periods-list :initarg :periods-list :initform '() :documentation 
+      "The list of periodes created by the user.")
+    (output-solution :accessor output-solution :initarg :output-solution :initform nil :documentation 
+      "The selected solution for the current search.")
+    (output-motif :accessor output-motif :initarg :output-motif :initform nil :documentation 
+      "The selected motif.")
+    (output-phrase :accessor output-phrase :initarg :output-phrase :initform nil :documentation 
+      "The selected phrase.")
+    (output-period :accessor output-period :initarg :output-period :initform nil :documentation 
+      "The selected period.")
+    (melody :accessor melody :initarg :melody :initform nil :documentation 
+      "The final melody generated by combining different elements.")
+    ;(slot2 :accessor slot2 :initarg :slot2 :initform nil :documentation "slot 2") add a slot this way
   )
-  (:icon 1)
-  (:doc "This class implements melodizer.
-        UPDATE THIS to a complete description of the tool")
+  (:icon 225)
+  (:documentation "This class implements Melodizer.
+        Melodizer is a constraints based application aiming to improve composer's expression and exploration abilities
+        by generating interesting and innovative melodies based on a set of constraints expressing musical rules.
+        More information and a tutorial can be found at https://github.com/sprockeelsd/Melodizer")
 )
 
 
@@ -74,22 +97,27 @@
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       
       ; The coordinates here are coordinates in the main view
-      (input-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with input
+
+      ; part of the display for everything that has to do with input
+      (input-panel (om::om-make-view 'om::om-view 
         :size (om::om-make-point 450 300)
         :position (om::om-make-point 5 30)
         :bg-color om::*azulito*) 
       )
-      (search-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with the search for solutions
+      ; part of the display for everything that has to do with the search for solutions
+      (search-panel (om::om-make-view 'om::om-view
         :size (om::om-make-point 450 300)
         :position (om::om-make-point 460 30)
         :bg-color om::*azulito*)
       )
-      (constraints-panel (om::om-make-view 'om::om-view ; part of the display for everything that has to do with adding new constraints to the problem
+      ; part of the display for everything that has to do with adding new constraints to the problem
+      (constraints-panel (om::om-make-view 'om::om-view
         :size (om::om-make-point 905 400)
         :position (om::om-make-point 5 335)
         :bg-color om::*azulito*)
       )
-      (solution-assembly-panel (om::om-make-view 'om::om-view ; part of the display to put different solutions together
+      ; part of the display to put different solutions together
+      (solution-assembly-panel (om::om-make-view 'om::om-view
         :size (om::om-make-point 450 705)
         :position (om::om-make-point 915 30)
         :bg-color om::*azulito*)
@@ -177,7 +205,7 @@
 
 
     ;;;;;;;;;;;;;;;;;
-    ;;; main view ;;;     final positions done
+    ;;; main view ;;;
     ;;;;;;;;;;;;;;;;;
 
 ; this function creates the elements for the main panel
@@ -627,7 +655,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 350 2) 
+      (om::om-make-point 380 2) 
       (om::om-make-point 200 20) 
       "Additional constraints"
       :font om::*om-default-font1b*
@@ -644,7 +672,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 50 2) 
+      (om::om-make-point 47 2) 
       (om::om-make-point 200 20) 
       "General constraints"
       :font om::*om-default-font1b*
@@ -686,7 +714,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 50 2) 
+      (om::om-make-point 35 2) 
       (om::om-make-point 200 20) 
       "Motif Maker constraints"
       :font om::*om-default-font1b*
@@ -875,10 +903,182 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 50 2) 
+      (om::om-make-point 30 2) 
       (om::om-make-point 200 20) 
       "Phrase Maker constraints"
       :font om::*om-default-font1b*
+    )
+
+    ;checkbox for strictly-increasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 30) ; position
+      (om::om-make-point 20 20) ; size
+      "Strictly increasing pitch"
+      :checked-p (find "strictly-increasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "strictly-increasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "strictly-increasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for strictly-increasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 30) 
+      (om::om-make-point 150 20) 
+      "Strictly increasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ;checkbox for strictly-decreasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 50) ; position
+      (om::om-make-point 20 20) ; size
+      "Strictly decreasing pitch"
+      :checked-p (find "strictly-decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "strictly-decreasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "strictly-decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for strictly-decreasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 50) 
+      (om::om-make-point 200 20) 
+      "Strictly decreasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ;checkbox for increasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 70) ; position
+      (om::om-make-point 20 20) ; size
+      "Increasing pitch"
+      :checked-p (find "increasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "increasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "increasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for increasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 70) 
+      (om::om-make-point 150 20) 
+      "Increasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ;checkbox for decreasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 90) ; position
+      (om::om-make-point 20 20) ; size
+      "Decreasing pitch"
+      :checked-p (find "decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "decreasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for decreasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 90) 
+      (om::om-make-point 200 20) 
+      "Decreasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ;checkbox for mostly-increasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 110) ; position
+      (om::om-make-point 20 20) ; size
+      "Mostly increasing pitch"
+      :checked-p (find "mostly-increasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "mostly-increasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "mostly-increasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for mostly-increasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 110) 
+      (om::om-make-point 150 20) 
+      "Mostly increasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ;checkbox for mostly-decreasing-pitch constraint
+    (om::om-make-dialog-item
+      'om::om-check-box
+      (om::om-make-point 10 130) ; position
+      (om::om-make-point 20 20) ; size
+      "Mostly decreasing pitch"
+      :checked-p (find "mostly-decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal)
+      :di-action #'(lambda (c)
+                    (if (om::om-checked-p c)
+                      (push "mostly-decreasing-pitch" (optional-constraints (om::object editor)))
+                      (setf (optional-constraints (om::object editor)) (remove "mostly-decreasing-pitch" (optional-constraints (om::object editor)) :test #'equal))
+                    )
+                    (print (optional-constraints (om::object editor)))
+      )
+    )
+
+    ; name for mostly-decreasing-pitch constraint
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 30 130) 
+      (om::om-make-point 150 20) 
+      "Mostly decreasing pitch"
+      :font om::*om-default-font1*
+    )
+
+    ; name for the pop-up menu allowing to select the global interval for both mostly increasing/decreasing
+    (om::om-make-dialog-item 
+      'om::om-static-text 
+      (om::om-make-point 10 150) 
+      (om::om-make-point 200 20) 
+      "Total interval (in semitones)"
+      :font om::*om-default-font1*
+    )
+
+    ; pop-up menu for the selection of the global interval that the melody should go to for both
+    (om::om-make-dialog-item 
+      'om::pop-up-menu 
+      (om::om-make-point 10 170) 
+      (om::om-make-point 180 20) 
+      "Key selection"
+      :range (loop :for n :from 1 :below 25 :by 1 collect (write-to-string n))
+      :value (global-interval (om::object editor))
+      :di-action #'(lambda (m)
+        (setf (global-interval (om::object editor)) (nth (om::om-get-selected-item-index m) (om::om-get-item-list m)))
+      )
     )
   )
 )
@@ -892,7 +1092,7 @@
     ; title
     (om::om-make-dialog-item 
       'om::om-static-text 
-      (om::om-make-point 50 2) 
+      (om::om-make-point 30 2) 
       (om::om-make-point 200 20) 
       "Period Maker constraints"
       :font om::*om-default-font1b*
