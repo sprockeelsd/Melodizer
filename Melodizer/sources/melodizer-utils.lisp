@@ -81,6 +81,7 @@
 )
 
 ; function to update the list of solutions in a pop-up menu without having to close and re-open the window
+; TODO find a more efficient way to do this
 (defun update-pop-up (self my-panel data position size output)
   (om::om-add-subviews my-panel
     (om::om-make-dialog-item 
@@ -204,7 +205,7 @@
 )
 
 ; function to get all notes playable on top of a given chord CHECK WHAT NOTES CAN BE PLAYED FOR OTHER CASES THAN M/m
-(defun get-admissible-notes (chords mode)
+(defun get-admissible-notes (chords mode inversion)
     (let ((return-list '()))
         (cond
             ((string-equal mode "major"); on top of a major chord, you can play either of the notes from the chord though the preferred order is 1-5-3
@@ -241,8 +242,30 @@
                     :from-end t
                 ))
             )
-            ((string-equal mode "diminished")
-            
+            ((string-equal mode "diminished"); only the third can be played on top of diminished chords
+                (cond
+                    ((= inversion 0)
+                        (setf return-list (reduce #'cons
+                            (get-all-notes (second chords))
+                            :initial-value return-list
+                            :from-end t
+                        ))
+                    )
+                    ((= inversion 1)
+                        (setf return-list (reduce #'cons
+                            (get-all-notes (first chords))
+                            :initial-value return-list
+                            :from-end t
+                        ))
+                    )
+                    ((= inversion 2)
+                        (setf return-list (reduce #'cons
+                            (get-all-notes (third chords))
+                            :initial-value return-list
+                            :from-end t
+                        ))
+                    )
+                )
             )
         )
     )   
@@ -250,9 +273,9 @@
 
 ; function to get the mode of the chord (major, minor, diminished,...) and the inversion (0 = classical form, 1 = first inversion, 2 = second inversion)
 (defun get-mode-and-inversion (intervals)
-    (let ((major-intervals (list (list 4 3) (list 3 5) (list 5 4))); possible intervals in midicent for major chords
-        (minor-intervals (list (list 3 4) (list 4 5) (list 5 3))) ; possible intervals in midicent for minor chords
-        (diminished-intervals (list (list 3 3) (list 3 6) (list 6 3))))
+    (let ((major-intervals (list (list 4 3) (list 3 5) (list 5 4))); possible intervals in midi for major chords
+        (minor-intervals (list (list 3 4) (list 4 5) (list 5 3))) ; possible intervals in midi for minor chords
+        (diminished-intervals (list (list 3 3) (list 3 6) (list 6 3)))); possible intervals in midi for diminished chords
         (cond 
             ((position intervals major-intervals :test #'equal); if the chord is major
                 (list "major" (position intervals major-intervals :test #'equal))
@@ -275,12 +298,7 @@
         collect (list (format nil "solution ~D: ~A"  i l) l)))
     
 
-
-
-
-
-
-; taken from rhythm box (add link)
+; taken from rhythm box
 ; https://github.com/blapiere/Rhythm-Box
 (defun rel-to-gil (rel)
 "Convert a relation operator symbol to a GiL relation value."
@@ -307,5 +325,4 @@
 		 (nth (random (length input-list)) input-list))
 	(list-shuffler (cdr input-list) 
 				 (append accumulator (list (car input-list)))))))
-
 
