@@ -17,8 +17,10 @@
         (setq pitch (gil::add-int-var-array sp (om::n-pulses input-melody) 0 127))
         (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -127 127))
 
-        ; temporary
+        ; temporary, should be set by the user
         (setq nidentical (ceiling (* fraction (length pitch))))
+
+        ; get the initial melody's notes
         (setf initial-melody
             (loop :for n :from 0 :below (length (om::chords input-melody)) :by 1 collect (first (om::lmidic (nth n (om::chords input-melody)))))
         )
@@ -39,8 +41,6 @@
 
         ; post the constraints
 
-        ; mandatory constraints
-
         (range-restriction sp pitch input-chords)
 
         (interval-between-adjacent-notes sp pitch intervals)
@@ -56,7 +56,7 @@
 
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_DEGREE_MAX gil::INT_VAL_RND)
-        (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND); to change
+        (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
 
         ;time stop
         (setq tstop (gil::t-stop)); create the time stop object
@@ -71,7 +71,7 @@
         ; search engine
         (setq se (gil::search-engine sp (gil::opts sopts) gil::DFS))
 
-        (print "Variator CSP constructed")
+        (print "Variator CSP constructed"); print in the listener
         ; return
         (list se pitch tstop sopts intervals)
     )
@@ -93,16 +93,16 @@
 (defmethod melody-finder (input rhythm optional-constraints &optional (global-interval nil) (key 60.0) (mode "major"))
     (let ((sp (gil::new-space)); create the space; 
         pitch intervals dfs tstop sopts)
-        (print "create the csp")
 
         ;initialize the variables
         (setq pitch (gil::add-int-var-array sp (om::n-pulses rhythm) 0 127))
-        (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -127 127)); this can be as large as possible given the domain of pitch, to keep all the restrictions in the constraint part.
+        ; this can be as large as possible given the domain of pitch, to keep all the restrictions in the constraint part.
+        (setq intervals (gil::add-int-var-array sp (- (length pitch) 1) -127 127))
 
         ; connect pitches to intervals
         (loop :for j :from 0 :below (length intervals) :do ;for each interval
             (let (temp)
-                (setq temp (gil::add-int-var-array sp 3 -12 108)); temporary variables to make it easier to apply the linear constraint
+                (setq temp (gil::add-int-var-array sp 3 -12 108)); temporary variables
 
                 (gil::g-rel sp (first temp) gil::IRT_EQ (nth j pitch)); temp[0] = pitch[j]
                 (gil::g-rel sp (second temp) gil::IRT_EQ (nth (+ j 1) pitch)); temp[1] = pitch[j+1]
@@ -128,22 +128,19 @@
         
         ; optional constraints
         (post-optional-constraints optional-constraints sp pitch intervals global-interval)
-        
+
         ; branching
         (gil::g-branch sp pitch gil::INT_VAR_DEGREE_MAX gil::INT_VAL_RND)
         
         ; the branching on intervals depends on the optional constraints. If there are none, do default branching
         (cond
             ((or (find "strictly-increasing-pitch" optional-constraints :test #'equal) (find "increasing-pitch" optional-constraints :test #'equal) (find "mostly-increasing-pitch" optional-constraints :test #'equal))
-                (print "increasing")
                 (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MAX)
             )
             ((or (find "strictly-decreasing-pitch" optional-constraints :test #'equal) (find "decreasing-pitch" optional-constraints :test #'equal) (find "mostly-decreasing-pitch" optional-constraints :test #'equal))
-                (print "decreasing")
                 (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_SPLIT_MIN)
             )
             (T ; default behaviour 
-                (print "default")
                 (gil::g-branch sp intervals gil::INT_VAR_SIZE_MIN gil::INT_VAL_RND)
             )
         )
@@ -161,7 +158,7 @@
         ; search engine
         (setq se (gil::search-engine sp (gil::opts sopts) gil::DFS))
 
-        (print "CSP constructed")
+        (print "melody-finder CSP constructed")
         ; return
         (list se pitch tstop sopts intervals)
     )
@@ -197,7 +194,7 @@
 ; SEARCH-NEXT ;
 ;;;;;;;;;;;;;;;
 
-; <l> is a list containing in that order the search engine for the problem and the variables
+; <l> is a list containing the search engine for the problem and the variables
 ; <rhythm> is the input rhythm as given by the user 
 ; <melodizer-object> is a melodizer object
 ; this function finds the next solution of the CSP using the search engine given as an argument
@@ -220,8 +217,7 @@
         )
 
         (setq pitches (to-midicent (gil::g-values sol pitch*))); store the values of the solution
-        (print "pitches")
-        (print pitches)
+        (print "solution found")
 
         ;return a voice object that is the solution we just found
         (make-instance 'voice
