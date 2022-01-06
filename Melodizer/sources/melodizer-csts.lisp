@@ -18,14 +18,14 @@
 
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
-; posts the constraint that the notes[i] < notes[i+1]
+; posts the constraint that notes[i] < notes[i+1]
 (defun strictly-increasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_LE nil) ; nil = v2
 )
 
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
-; posts the constraint that the notes[i] <= notes[i+1]
+; posts the constraint that notes[i] <= notes[i+1]
 (defun increasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_LQ nil) ; nil = v2
 )
@@ -49,14 +49,14 @@
 
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
-; posts the constraint that the notes[i] > notes[i+1]
+; posts the constraint that notes[i] > notes[i+1]
 (defun strictly-decreasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_GR nil) ; nil = v2
 )
 
 ; <sp> is the space
 ; <notes> is a list of IntVars representing the pitch of the notes
-; posts the constraint that the notes[i] >= notes[i+1]
+; posts the constraint that notes[i] >= notes[i+1]
 (defun decreasing-pitch (sp notes)
     (gil::g-rel sp notes gil::IRT_GQ nil) ; nil = v2
 )
@@ -65,13 +65,14 @@
 ; <notes> is a list of IntVars representing the pitch of the notes
 ; <intervals> is a list if IntVars representing the intervals between consecutive notes
 ; <global-interval> is the global interval that the melody spans
+; ensures that the melodic direction is mostly downwards
 (defun mostly-decreasing-pitch (sp notes intervals global-interval)
     (let (sum interval-domain-smaller-than-zero)
         (setq sum (gil::add-int-var sp (- (* 127 (length intervals))) -1)); variable to hold the result of the sum of the intervals
-        (setq interval-domain-smaller-than-zero (loop :for n :from 1 :to 13 :by 1 collect (- n))); [-13...-1]
+        (setq interval-domain-smaller-than-zero (loop :for n :from 1 :to 13 :by 1 collect (- n))); [-12...-1]
 
         (gil::g-sum sp sum intervals); sum = sum(intervals)
-        (gil::g-rel sp sum gil::IRT_LQ (- (parse-integer global-interval))); sum <= global-interval
+        (gil::g-rel sp sum gil::IRT_LQ (- (parse-integer global-interval))); sum <= -global-interval
         (gil::g-count sp intervals interval-domain-smaller-than-zero gil::IRT_GQ (ceiling (* 80 (length intervals)) 100)); (nb of intervals < 0) >= 0.8*size(intervals)
     )
 )
@@ -116,19 +117,6 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; DISSONNANCE RESOLUTION constraint ; TODO + develop comments
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; Ensures that every sensitive note (4th or 7th) is eventually followed by the fundamental
-; if it is a seventh note, it is followed by the fundamental that is above it (+1 if major, +2 if minor)
-; if it is a fourth note, it is followed by either of the fundamentals around it (+7 or -5)
-(defun dissonnance-resolution (sp notes key mode)
-    #| (if (string-equal mode "major")
-
-    ) |#
-)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; INTERVAL-BETWEEN-ADJACENT-NOTES constraint ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -138,8 +126,7 @@
 ; <intervals> is a list of IntVars representing the intervals between successive notes from the notes argument
 ; Ensures that the interval between two adjacent notes is valid
 ; The interval must be everything up to a minor sixth (it can be an octave) except for a tritone, a major seven or a minor seven
-; ;(-1 -2 -3 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 9 12) admissible intervals
-; new version (-1 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 12)
+; (-1 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 12) admissible intervals
 ; IMPROVEMENT IDEA : PRIORITIZE SMALLER INTERVALS
 (defun interval-between-adjacent-notes (sp notes intervals)
     (let ((valid-intervals '(-1 -4 -5 -7 -8 -9 -12 0 1 2 3 4 5 7 8 12)))
@@ -219,47 +206,28 @@
         (local-starting-note-melody 0); counter to keep track of which variable is the start of the melody over the given chord
         (starting-time-next-chord 0))
         (dolist (c chords-starting-times); go through the chords starting times
-            ;(print "chord starting time")
-            ;(print c)
             (setf starting-time-next-chord (nth (+ 1 chord-counter) chords-starting-times)); get the starting time of the next chord
-            ;(print "starting time next chord")
-            ;(print starting-time-next-chord)
             (setf local-starting-note-melody variable-counter); keep a track of the first note in the context of this chord
             (cond 
                 ((>= (+ 1 variable-counter) (length melody-starting-times)); we reached the last note
-                        ;(print "no more notes")
                         (return ); no need to go through notes if there are no more notes
                 )
             )
 
             (dolist (m (subseq melody-starting-times variable-counter)); go through all the notes that we haven't seen yet
-                ;(print "current note")
-                ;(print m)
-                ;(print variable-counter)
                 (cond 
                     ((= variable-counter (- (length melody-starting-times) 1)); we reached the last note
-                        ;(print "start")
-                        ;(print local-starting-note-melody)
-                        ;(print "end")
-                        ;(print variable-counter)
                         (hic-constraint sp notes local-starting-note-melody variable-counter)
                     )
                     ((typep starting-time-next-chord 'null); if we are looking at the last chord
-                        ;(print "last chord")
                         ; check qu'il reste des notes
                         (hic-constraint sp notes local-starting-note-melody (- (length melody-starting-times) 1)); post the constraint on all remaining notes
                         (return )
                     )
                     ((< m starting-time-next-chord); if the note is in the context of this chord
-                        ;(print "still in")
                         (incf variable-counter 1); simply increment the counter for the melody
                     )
                     ((>= m starting-time-next-chord); the note is not in the context of this chord
-                        ;(print "out")
-                        ;(print "local starting note")
-                        ;(print local-starting-note-melody)
-                        ;(print "end note")
-                        ;(print (- variable-counter 1))
                         ; post the constraint on the corresponding notes
                         (if (>= (- variable-counter 1) local-starting-note-melody); if it is smaller, there is no note in the context of that chord
                             (hic-constraint sp notes local-starting-note-melody (- variable-counter 1))
@@ -335,7 +303,7 @@
         (setf mode (first (get-mode-and-inversion intervals))); get the mode of the chord from the intervals between the notes
         (setf inversion (second (get-mode-and-inversion intervals))); get the inversion of the chord
         ;get the notes playable on that chord
-        (setf admissible-notes (get-admissible-notes chord-pitch mode))
+        (setf admissible-notes (get-admissible-notes chord-pitch mode inversion))
         (gil::g-dom sp (nth variable-id notes) admissible-notes); post the constraint that the domain of that variable is one of the admissible notes
         (gil::g-rel sp (nth variable-id notes) gil::IRT_LQ (+ (max (first chord-pitch)) 18)); post the constraint that the interval between the note of the melody and the highest note of the chord is maximum 1 octave
     )
