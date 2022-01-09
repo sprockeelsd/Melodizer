@@ -305,7 +305,7 @@
       'om::om-button
       (om::om-make-point 240 101)
       (om::om-make-point 200 20)
-      "Edit melody rhythm"
+      "Edit melody/rhythm"
       :di-action #'(lambda (b)
         (om::openeditorframe ; open a voice window displaying the input rhythm
           (om::omNG-make-new-instance 
