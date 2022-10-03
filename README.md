@@ -1,9 +1,11 @@
 # Melodizer
 
-Melodizer is an OpenMusic objet allowing you to get innovating melody ideas from a sequence of chords that you give.
+Melodizer is an OpenMusic objet allowing you to get innovating melody ideas from a sequence of chords that you give. 
+The latest version can be found here : 
+https://github.com/clemsky/TFE-Composition- Musicale
 
 ## How to use
-In order to use Melodizer, you need to install GiL (https://github.com/sprockeelsd/GiLv2.0). Once this step is done, you are ready to load the library in OpenMusic.
+see file ***Melodizer-how-to-use.pdf***
 
 ## Structure explanation
 In Melodizer/sources, there are 4 files.
