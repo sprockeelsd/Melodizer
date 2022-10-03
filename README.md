@@ -2,7 +2,7 @@
 
 Melodizer is an OpenMusic objet allowing you to get innovating melody ideas from a sequence of chords that you give. 
 The latest version can be found here : 
-https://github.com/clemsky/TFE-Composition- Musicale
+https://github.com/clemsky/TFE-Composition-Musicale
 
 ## How to use
 see file ***Melodizer-how-to-use.pdf***
