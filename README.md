@@ -21,6 +21,3 @@ This file contains all the auxiliary functions used in the project.
 
 ### melody-finder.lisp
 This file contains the code for the OM object.
-
-## How to improve Melodizer
-Explain later
