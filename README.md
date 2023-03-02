@@ -13,7 +13,7 @@ Melodizer and Melodizer2.0 have pdf files explaining how they work and how to us
 
 ### Melodizer
 
-###Structure explanation
+### Structure explanation
 In Melodizer/sources, there are 4 files.
 
 ***melodizer-csp.lisp***
