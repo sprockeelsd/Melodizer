@@ -38,6 +38,7 @@ Since the functional part of this library has only just been completed, no inter
 #### Structure explanation
 In FuxCP/sources, there is 1 file:
 ***fux-counterpoint.lisp***
+
 This file contains all the logic and constraints. If you are a bit of a Lisp connoisseur, it is possible to change some values in the code but be aware that it is a bit messy at the moment.
 
 #### Voice type shifting
@@ -47,9 +48,13 @@ The VOICE_TYPE value at the beginning of the file is 1 by default but you can ch
 To use this library, you must load the ***fux-cp*** and ***search-next-fux-cp*** functions in the patch. The first one sets the harmonic and melodic constraints with respect to the cantus firmus while the second one gives a voice object with the solution. Press ">" and "<" to make (dis)appear optional parameters to a function in OM. 
 
 ***fux-cp***
+
 1st input - voice object: the cantus firmus with only full notes in 4/4 with a minimum of 3 measures.
+
 2nd input - integer (default=1): the species of the counterpoint to produce {1, 2, 3, 4, 5}.
 
 ***search-next-fux-cp***
+
 1st input - the fux-cp output: directly connect the output of the previous function. 
+
 output - voice object: directly connect the first input of a voice object.
