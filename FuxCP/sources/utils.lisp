@@ -1,6 +1,24 @@
-(in-package :mldz)
+(in-package :fuxcp)
 
+;::::::::::::::::::::::::::::::::::::::::::::::::;;;;;;;;;;;;;
+;; Most of this code comes from the Melodizer2.0 libraries. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; converts a list of MIDI values to MIDIcent
+(defun to-midicent (l)
+    (if (null l)
+        nil
+        (cons (* 100 (first l)) (to-midicent (rest l)))
+    )
+)
+
+; convert from MIDIcent to MIDI
+(defun to-midi (l)
+    (if (null l)
+        nil
+        (cons (/ (first l) 100) (to-midi (rest l)))
+    )
+)
 
 ;converts the value of a note to its name
 (defmethod note-value-to-name (note)
@@ -165,7 +183,44 @@
     )
 )
 
-
+; returns the list of intervals defining a given mode
+(defun get-scale (&optional (mode "ionian (major)"))
+    (cond
+        ((string-equal mode "ionian (major)")
+            (list 2 2 1 2 2 2 1)
+        )
+        ((string-equal mode "dorian")
+            (list 2 1 2 2 2 1 2)
+        )
+        ((string-equal mode "phrygian")
+            (list 1 2 2 2 1 2 2)
+        )
+        ((string-equal mode "lydian")
+            (list 2 2 2 1 2 2 1)
+        )
+        ((string-equal mode "mixolydian")
+            (list 2 2 1 2 2 1 2)
+        )
+        ((string-equal mode "aeolian (natural minor)")
+            (list 2 1 2 2 1 2 2)
+        )
+        ((string-equal mode "locrian")
+            (list 1 2 2 1 2 2 2)
+        )
+        ((string-equal mode "harmonic minor")
+            (list 2 1 2 2 1 3 1)
+        )
+        ((string-equal mode "pentatonic")
+            (list 2 2 3 2 3)
+        )
+        ((string-equal mode "chromatic")
+            (list 1 1 1 1 1 1 1 1 1 1 1 1)
+        )
+        ((string-equal mode "borrowed")
+            (list 5 4 2 1)
+        )
+    )
+)
 
 (defun get-chord (quality)
     (cond
@@ -200,7 +255,7 @@
             (list 3 4 4 1)
         )
 
-        ; TODO gérer les accords 9 ou +
+        ; TODO manage chords
         ((string-equal quality "Major 9")
             (list 3 4 5)
         )
@@ -470,11 +525,52 @@
     )
 )
 
+; reformat a scale to be a canvas of pitch and not intervals
+(defun adapt-scale (scale)
+    (let ((major-modified (list (first scale))))
+         (loop :for i :from 1 :below (length scale) :by 1 :do
+            (setq major-modified (nconc major-modified (list (+ (nth i scale) (nth (- i 1) major-modified)))))
+         )
+    (return-from adapt-scale major-modified)
+    )
+)
+
+; build the list of acceptable pitch based on the scale and a key offset
+(defun build-scaleset (scale offset)
+    (let ((major-modified (adapt-scale scale))
+          (scaleset (list)))
+        (loop :for octave :from -1 :below 11 :by 1 append
+              (setq scaleset (nconc scaleset (mapcar (lambda (n) (+ (+ n (* octave 12)) offset)) major-modified)))
+        )
+        (setq scaleset (remove-if 'minusp scaleset))
+        ;; tibo: remove notes higher than 127
+        (setq scaleset (remove 127 scaleset :test #'<))
+    )
+)
+
+; build the list of acceptable pitch based on the scale and a key offset
+(defun build-notesets (chord offset)
+    (let ((chord-modified (adapt-scale chord))
+          (notesets (list)))
+        (loop :for i :from 0 :below (length chord-modified) :by 1 :do
+            (setq noteset (list))
+            (loop :for octave :from -1 :below 11 :by 1 append
+                  (setq noteset (nconc noteset (list (+ (+ (nth i chord-modified) (* octave 12)) offset))))
+            )
+            (setq noteset (remove-if 'minusp noteset))
+            (setq notesets (nconc notesets (list noteset)))
+        )
+        notesets
+    )
+)
 
 
 
-
-
+; <chords> a list of chord object
+; Return the list of pitch contained in chords in midi format
+(defun to-pitch-list (chords)
+     (loop :for n :from 0 :below (length chords) :by 1 collect (to-midi (om::lmidic (nth n chords))))
+)
 
 
 ; Getting a list of chords and a rhythm tree from the playing list of intvar
