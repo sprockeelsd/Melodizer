@@ -6,12 +6,12 @@ The first one, Melodizer, is an OpenMusic object allowing you to generate innova
 
 The second one, Melodizer2.0, is based on Melodizer but can generate polyphonic music. It has a specific data structure, called blocks, that can be combined both vertically and horizontally and constraints can be added on and between blocks.
 
-The third one is still a work in progress. It is a formalization of counterpoint in the style of Johann Joseph Fux. Currently all five species of two-voice counterpoint are formalized and the library functions allow to generate counterpoint from user-specified cantus firmi. It does not currently have a user-friendly interface, but is already useable. Future improvements will be pushed regularly when available.
+The third one is still a work in progress. It is a formalization of counterpoint in the style of Johann Joseph Fux. Currently all five species of two-voice counterpoint are formalized and the library functions allow to generate counterpoint from user-specified cantus firmi. A user interface has been released. Future improvements will be pushed regularly when available.
 
 ## How to use
 All three libraries require GiL, a library linking Gecode to Lisp that can be found [here](https://github.com/sprockeelsd/GiL). All instructions on how to install it can be found on its github page.
 
-Melodizer and Melodizer2.0 have pdf files explaining how they work and how to use them in their respective ***UserGuide*** folder. Since the Fux formalization is not finished yet, the instructions on how to use it are detailed below.
+Melodizer, Melodizer2.0 and FuxCP have pdf files explaining how they work and how to use them in their respective ***UserGuide*** folder. Since the Fux formalization is not finished yet, the instructions on how to use it are detailed below.
 
 ### Melodizer
 
@@ -33,28 +33,11 @@ This file contains the code for the OM object.
 ### Melodizer2.0
 
 ### Fux formalization (Work in progress)
-Since the functional part of this library has only just been completed, no interface is already available as mentioned above.
 
 #### Structure explanation
-In FuxCP/sources, there is 1 file:
-***fux-counterpoint.lisp***
+FuxCP is an OpenMusic library that uses GiL to communicate constraints with Gecode. The solver itself therefore runs in Gecode directly. At the level of the distribution of the files, all the functions that post the constraints have been placed in a single and same file. The different species, which represent a set of rules, call these functions such that the constraints set reflect the rules of these species. Apart from that, the interface calls the main CSP creation and search functions via the ***fuxcp-main.lisp*** file. The latter chooses what to do, in particular according to the type of counterpoint chosen.
 
-This file contains all the logic and constraints. If you are a bit of a Lisp connoisseur, it is possible to change some values in the code but be aware that it is a bit messy at the moment.
+#### Using FuxCP
+There is a single block comprising the entire graphical interface of the tool. This block or class is called ***cp-params***. To load it, it is possible to type ***fuxcp::cp-params*** in a new patch entry; or load the block of the class by loading "cp-params" from the drop-down menu by right-clicking in the patch (Classes -> Libraries -> FuxCP -> Solver -> CP-PARAMS).
 
-#### Voice type shifting
-The VOICE_TYPE value at the beginning of the file is 1 by default but you can change this value to change the range of the counterpoint produced relative to the first note of the cantus firmus. Shifting the voice type by 1 shifts the range by half an octave. Please note that the third species of counterpoint does not currently work with a voice type lower than 1.
-
-#### Functions
-To use this library, you must load the ***fux-cp*** and ***search-next-fux-cp*** functions in the patch. The first one sets the harmonic and melodic constraints with respect to the cantus firmus while the second one gives a voice object with the solution. Press ">" and "<" to make (dis)appear optional parameters to a function in OM. 
-
-***fux-cp***
-
-1st input - voice object: the cantus firmus with only full notes in 4/4 with a minimum of 3 measures.
-
-2nd input - integer (default=1): the species of the counterpoint to produce {1, 2, 3, 4, 5}.
-
-***search-next-fux-cp***
-
-1st input - the fux-cp output: directly connect the output of the previous function. 
-
-output - voice object: directly connect the first input of a voice object.
+Once this block has appeared, all you have to do is bind an OM voice object, representing the cantus firmus to the second argument of ***cp-params***. Don't forget to block the input voice object and evaluate ***cp-params*** so it can detect the new input. Now ***cp-params*** can be blocked too. From now on, you could directly use the interface and generate counterpoints using the tool. If you want to retrieve the voice object containing the counterpoint generated by the tool, just bind the third argument on the output side to a voice object. Once bound, it is then possible to evaluate the voice object so that it updates. For more explanation on the use of the interface, you can refer to the ***User Guide***.
