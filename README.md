@@ -32,7 +32,7 @@ This file contains the code for the OM object.
 
 ## Melodizer2.0
 
-## Fux formalization - FuxCP - the following applies for both the library 
+## Fux formalization - FuxCP2V and FuxCP3v
 
 #### Structure explanation
 FuxCP is an OpenMusic library that uses GiL to communicate constraints with Gecode. The solver itself therefore runs in Gecode directly. At the level of the distribution of the files, all the functions that post the constraints have been placed in a single and same file. The different species, which represent a set of rules, call these functions such that the constraints set reflect the rules of these species. Apart from that, the interface calls the main CSP creation and search functions via the ***fuxcp-main.lisp*** file. The latter chooses what to do, in particular according to the type of counterpoint chosen.
