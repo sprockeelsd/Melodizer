@@ -1,0 +1,9 @@
+After compiling, execute : 
+-	./Main <test number> to execute a test in its entirety. 
+-	./Main <test number> <n> to execute the test by fixing the first n measures to the values of the respective illustration that Fux gives.
+
+Test Numbers and respective illustrations :
+
+Test Number	Illustration Number
+1		22
+2		23
